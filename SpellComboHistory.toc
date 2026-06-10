@@ -7,4 +7,5 @@
 ## SavedVariables: SpellComboHistoryDB
 
 Locales\enUS.lua
+Locales\ptBR.lua
 SpellComboHistory.lua
