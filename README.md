@@ -21,6 +21,9 @@ handy for practicing tight rotations and minimizing GCD downtime.
 - **Ignore list** — exclude spells you don't care about (procs, trinkets,
   racials). Right-click a history icon to ignore it, or manage the list in the
   settings by spell ID, name, or link.
+- **Stats panel** — an optional on-screen readout of the current fight: GCD
+  uptime, PERFECT count and rate, best combo, average wasted time, casts, and
+  session length. Also available via `/sch`.
 - **Movable & lockable** — drag the bar anywhere; right-click to lock.
 - **Grid & snap** — optional alignment grid with snapping for precise placement.
 - **In-game settings** — adjust max icons, scale, background transparency,
@@ -68,16 +71,21 @@ handy for practicing tight rotations and minimizing GCD downtime.
 | **Animation Style** | How icons enter/leave the bar: None, Fade, Slide, or Bounce. |
 | **Animation Speed** | Duration of the animations (0.1s–0.6s). |
 | **Ignore List** | Spells excluded from tracking. Add by ID/name/link or right-click a history icon; remove from the list here. |
+| **Show / Lock Stats Panel** | Toggle the on-screen stats readout and lock it in place. While unlocked, drag it; right-click it to lock. |
+| **Statistics** | A summary of the current/last fight, with Refresh and Reset buttons. |
 
 There are also buttons to check the current queue value, clear the history,
 and reset the bar position to center.
+
+## Slash commands
+
+- `/sch` (or `/spellcombo`) — print the current/last fight's statistics.
+- `/sch reset` — reset the statistics.
 
 ## Planned Features
 
 These are on the roadmap and not yet implemented:
 
-- **Stats & session tracking** — a session summary: uptime %, average wasted
-  time between globals, best combo, and total casts.
 - **Per-spec profiles** — separate settings (position, max icons, scale, ...)
   per character specialization.
 

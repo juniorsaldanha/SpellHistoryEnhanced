@@ -67,6 +67,12 @@ local function GetSpellCooldownDuration(spellID)
     return dur or 0
 end
 
+-- Format a duration in seconds as M:SS (used by stats output).
+local function fmtDuration(sec)
+    sec = math.floor(sec)
+    return string.format("%d:%02d", math.floor(sec / 60), sec % 60)
+end
+
 -- Create the main frame that receives events.
 local frame = CreateFrame("Frame", "SpellComboHistoryFrame", UIParent)
 -- Register the spell-cast-succeeded event.
@@ -551,10 +557,69 @@ local function InitializeOptions()
         _G[self:GetName() .. "Text"]:SetText(L["ANIM_SPEED"] .. ": " .. string.format("%.2fs", value))
     end)
 
+    -- ===== Statistics =====
+    -- Section header.
+    local statsHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+    statsHeader:SetPoint("TOP", animSpeedSlider, "BOTTOM", 0, -45)
+    statsHeader:SetText(L["STATS_HEADER"])
+
+    -- Show / lock the on-screen stats panel.
+    local showStatsCheck = CreateFrame("CheckButton", "SpellComboHistoryShowStatsCheck", content, "ChatConfigCheckButtonTemplate")
+    showStatsCheck:SetPoint("TOP", statsHeader, "BOTTOM", -80, -12)
+    _G[showStatsCheck:GetName() .. "Text"]:SetText(L["SHOW_STATS"])
+    showStatsCheck:SetChecked(SpellComboHistoryDB.statsShown)
+    showStatsCheck:SetScript("OnClick", function(self)
+        SpellComboHistoryDB.statsShown = self:GetChecked() and true or false
+        ns.StatsPanel:ApplyShown()
+    end)
+
+    local lockStatsCheck = CreateFrame("CheckButton", "SpellComboHistoryLockStatsCheck", content, "ChatConfigCheckButtonTemplate")
+    lockStatsCheck:SetPoint("TOP", showStatsCheck, "BOTTOM", 0, -4)
+    _G[lockStatsCheck:GetName() .. "Text"]:SetText(L["LOCK_STATS"])
+    lockStatsCheck:SetChecked(SpellComboHistoryDB.statsLocked)
+    lockStatsCheck:SetScript("OnClick", function(self)
+        SpellComboHistoryDB.statsLocked = self:GetChecked() and true or false
+        ns.StatsPanel:ApplyLock()
+    end)
+
+    -- A static summary of the current/last fight (refreshed on demand).
+    local statsSummary = content:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    statsSummary:SetPoint("TOP", lockStatsCheck, "BOTTOM", 80, -14)
+    statsSummary:SetJustifyH("LEFT")
+    statsSummary:SetWidth(260)
+    local function updateStatsSummary()
+        local s = ns.Stats:Get()
+        statsSummary:SetText(
+            L["STATS_SESSION"] .. ": " .. fmtDuration(s.duration) .. "\n" ..
+            L["STATS_UPTIME"] .. ": " .. math.floor(s.uptime + 0.5) .. "%\n" ..
+            L["PERFECT"] .. ": " .. s.perfects .. " (" .. math.floor(s.perfectRate + 0.5) .. "%)\n" ..
+            L["STATS_BEST_COMBO"] .. ": " .. s.bestCombo .. "\n" ..
+            L["STATS_AVG_WASTE"] .. ": " .. string.format("%.2fs", s.avgWaste) .. "\n" ..
+            L["STATS_CASTS"] .. ": " .. s.casts
+        )
+    end
+    updateStatsSummary()
+
+    local statsRefreshButton = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
+    statsRefreshButton:SetSize(110, 26)
+    statsRefreshButton:SetPoint("TOP", statsSummary, "BOTTOM", -60, -12)
+    statsRefreshButton:SetText(L["STATS_REFRESH"])
+    statsRefreshButton:SetScript("OnClick", updateStatsSummary)
+
+    local statsResetButton = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
+    statsResetButton:SetSize(110, 26)
+    statsResetButton:SetPoint("LEFT", statsRefreshButton, "RIGHT", 12, 0)
+    statsResetButton:SetText(L["STATS_RESET"])
+    statsResetButton:SetScript("OnClick", function()
+        ns.Stats:Reset()
+        updateStatsSummary()
+        print("|cff00ccff[SpellCombo] |r" .. L["MSG_STATS_RESET"])
+    end)
+
     -- ===== Ignore list =====
     -- Section header.
     local ignoreHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
-    ignoreHeader:SetPoint("TOP", animSpeedSlider, "BOTTOM", 0, -45)
+    ignoreHeader:SetPoint("TOP", statsResetButton, "BOTTOM", 60, -45)
     ignoreHeader:SetText(L["IGNORE_LIST"])
 
     -- Usage hint.
@@ -655,7 +720,7 @@ local function InitializeOptions()
         end
 
         -- Grow the scroll content so every row stays reachable.
-        content:SetSize(600, 950 + #ids * (ROW_HEIGHT + 4))
+        content:SetSize(600, 1200 + #ids * (ROW_HEIGHT + 4))
     end
     ns.IgnoreList:SetOnChanged(rebuildIgnoreList)
     rebuildIgnoreList()
@@ -897,6 +962,13 @@ local function ProcessFrameSpells()
             isPerfect = false
         end
 
+        -- Record session stats for in-combat, on-GCD casts.
+        if inCombat and not isOffGCD then
+            -- How long this cast kept the GCD/cast bar busy.
+            local activeChunk = sp.castStartTime and (now - sp.castStartTime) or currentDuration
+            ns.Stats:Record(isPerfect, perfectCombo, isStart, wasteTime, activeChunk)
+        end
+
         -- Send all the info (spell ID, waste, off-GCD, ...) to refresh the UI.
         ns.HistoryBar:Push(sp.spellID, wasteTime, isOffGCD, isStart, isPerfect, perfectCombo)
     end
@@ -924,9 +996,16 @@ frame:SetScript("OnEvent", function(self, event, unit, castID, spellID)
         if SpellComboHistoryDB.animStyle == nil then SpellComboHistoryDB.animStyle = "slide" end
         -- Default animation duration (seconds).
         if SpellComboHistoryDB.animDuration == nil then SpellComboHistoryDB.animDuration = 0.25 end
+        -- Default stats panel visibility and lock state.
+        if SpellComboHistoryDB.statsShown == nil then SpellComboHistoryDB.statsShown = true end
+        if SpellComboHistoryDB.statsLocked == nil then SpellComboHistoryDB.statsLocked = true end
 
         -- Initialize the ignore list from saved variables.
         ns.IgnoreList:Init(SpellComboHistoryDB)
+
+        -- Initialize the statistics model and its on-screen panel.
+        ns.Stats:Init()
+        ns.StatsPanel:Init(SpellComboHistoryDB)
 
         -- Wire up the icon bar, injecting its config and settings getters.
         ns.HistoryBar:Init({
@@ -963,6 +1042,8 @@ frame:SetScript("OnEvent", function(self, event, unit, castID, spellID)
     end
     -- When the player leaves combat.
     if event == "PLAYER_REGEN_ENABLED" then
+        -- Freeze the session stats at the fight's end.
+        ns.Stats:EndCombat(GetTime())
         -- Clear the start flag.
         pendingStart = false
         -- Reset the last GCD end record.
@@ -978,6 +1059,8 @@ frame:SetScript("OnEvent", function(self, event, unit, castID, spellID)
     end
     -- When the player enters combat.
     if event == "PLAYER_REGEN_DISABLED" then
+        -- Start a fresh session for this fight (per-combat stats).
+        ns.Stats:BeginCombat(GetTime())
         -- Flag the next spell as START.
         pendingStart = true
         -- Reset the channel end record.
@@ -1067,3 +1150,23 @@ frame:SetScript("OnEvent", function(self, event, unit, castID, spellID)
         end
     end
 end)
+
+-- Slash command: "/sch" or "/spellcombo" to print stats, "/sch reset" to clear.
+SLASH_SPELLCOMBOHISTORY1 = "/sch"
+SLASH_SPELLCOMBOHISTORY2 = "/spellcombo"
+SlashCmdList["SPELLCOMBOHISTORY"] = function(msg)
+    msg = (msg or ""):lower():gsub("%s+", "")
+    if msg == "reset" then
+        ns.Stats:Reset()
+        print("|cff00ccff[SpellCombo] |r" .. L["MSG_STATS_RESET"])
+        return
+    end
+    -- Print the current/last fight's statistics.
+    local s = ns.Stats:Get()
+    print("|cff00ccff[SpellCombo] |r" .. L["STATS_HEADER"] .. " (" .. fmtDuration(s.duration) .. ")")
+    print("  " .. L["STATS_UPTIME"] .. ": " .. math.floor(s.uptime + 0.5) .. "%")
+    print("  " .. L["PERFECT"] .. ": " .. s.perfects .. " (" .. math.floor(s.perfectRate + 0.5) .. "%)")
+    print("  " .. L["STATS_BEST_COMBO"] .. ": " .. s.bestCombo)
+    print("  " .. L["STATS_AVG_WASTE"] .. ": " .. string.format("%.2fs", s.avgWaste))
+    print("  " .. L["STATS_CASTS"] .. ": " .. s.casts)
+end

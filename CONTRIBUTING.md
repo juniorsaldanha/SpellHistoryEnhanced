@@ -11,6 +11,8 @@ SpellComboHistory.toc     # addon manifest; declares load order
 SpellComboHistory.lua     # events, GCD/combo analysis, settings panel, wiring
 Animations.lua            # tween engine + pluggable animation strategies
 IgnoreList.lua            # the set of spells excluded from tracking
+Stats.lua                 # per-combat statistics model
+StatsPanel.lua            # optional on-screen stats readout (view over Stats)
 HistoryBar.lua            # the on-screen icon bar (display manager)
 Locales/
   enUS.lua                # English (base) strings
@@ -22,7 +24,8 @@ LICENSE
 
 Files load in the order declared in the `.toc`: locales first (so the string
 table exists), then the modules (`Animations.lua`, `IgnoreList.lua`,
-`HistoryBar.lua`, which expose `ns.Tween`, `ns.Animations`, `ns.IgnoreList`, and
+`Stats.lua`, `StatsPanel.lua`, `HistoryBar.lua`, which expose `ns.Tween`,
+`ns.Animations`, `ns.IgnoreList`, `ns.Stats`, `ns.StatsPanel`, and
 `ns.HistoryBar` on the addon's private namespace), and finally
 `SpellComboHistory.lua`, which wires everything together.
 
