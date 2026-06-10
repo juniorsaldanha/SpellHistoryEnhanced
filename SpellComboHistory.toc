@@ -9,5 +9,6 @@
 Locales\enUS.lua
 Locales\ptBR.lua
 Animations.lua
+IgnoreList.lua
 HistoryBar.lua
 SpellComboHistory.lua

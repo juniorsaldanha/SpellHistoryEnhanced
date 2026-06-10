@@ -551,6 +551,115 @@ local function InitializeOptions()
         _G[self:GetName() .. "Text"]:SetText(L["ANIM_SPEED"] .. ": " .. string.format("%.2fs", value))
     end)
 
+    -- ===== Ignore list =====
+    -- Section header.
+    local ignoreHeader = content:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+    ignoreHeader:SetPoint("TOP", animSpeedSlider, "BOTTOM", 0, -45)
+    ignoreHeader:SetText(L["IGNORE_LIST"])
+
+    -- Usage hint.
+    local ignoreHint = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    ignoreHint:SetPoint("TOP", ignoreHeader, "BOTTOM", 0, -6)
+    ignoreHint:SetWidth(420)
+    ignoreHint:SetJustifyH("CENTER")
+    ignoreHint:SetText(L["IGNORE_HINT"])
+
+    -- Add box: accepts a spell ID, name, or dragged spell link.
+    local addBox = CreateFrame("EditBox", "SpellComboHistoryIgnoreAddBox", content, "InputBoxTemplate")
+    addBox:SetSize(180, 24)
+    addBox:SetPoint("TOP", ignoreHint, "BOTTOM", -50, -14)
+    addBox:SetAutoFocus(false)
+
+    local addButton = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
+    addButton:SetSize(90, 24)
+    addButton:SetPoint("LEFT", addBox, "RIGHT", 12, 0)
+    addButton:SetText(L["IGNORE_ADD"])
+
+    -- Turn user input (ID, name, or spell link) into a spell ID.
+    local function resolveSpell(input)
+        if not input then return nil end
+        input = input:gsub("^%s+", ""):gsub("%s+$", "")
+        if input == "" then return nil end
+        local linkID = input:match("spell:(%d+)")
+        if linkID then return tonumber(linkID) end
+        local num = tonumber(input)
+        if num then return num end
+        if C_Spell and C_Spell.GetSpellInfo then
+            local info = C_Spell.GetSpellInfo(input)
+            if info and info.spellID then return info.spellID end
+        end
+        return select(7, GetSpellInfo(input))
+    end
+
+    local function commitAdd()
+        local id = resolveSpell(addBox:GetText())
+        if id and ns.IgnoreList.SpellExists(id) then
+            if ns.IgnoreList:Add(id) then
+                local name = ns.IgnoreList.GetSpellNameIcon(id)
+                print("|cff00ccff[SpellCombo] |r" .. string.format(L["MSG_IGNORE_ADDED"], name or id))
+            end
+            addBox:SetText("")
+            addBox:ClearFocus()
+        else
+            print("|cff00ccff[SpellCombo] |r" .. L["MSG_IGNORE_INVALID"])
+        end
+    end
+    addButton:SetScript("OnClick", commitAdd)
+    addBox:SetScript("OnEnterPressed", commitAdd)
+    addBox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+
+    -- "(no spells ignored)" placeholder.
+    local ignoreEmpty = content:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+    ignoreEmpty:SetPoint("TOP", addBox, "BOTTOM", 50, -16)
+    ignoreEmpty:SetText(L["IGNORE_EMPTY"])
+
+    -- Pooled rows, rebuilt whenever the ignore list changes.
+    local ignoreRows = {}
+    local ROW_HEIGHT = 26
+    local function rebuildIgnoreList()
+        local ids = ns.IgnoreList:GetSorted()
+        for _, row in ipairs(ignoreRows) do row:Hide() end
+        ignoreEmpty:SetShown(#ids == 0)
+
+        for i, spellID in ipairs(ids) do
+            local row = ignoreRows[i]
+            if not row then
+                row = CreateFrame("Frame", nil, content)
+                row:SetSize(300, ROW_HEIGHT)
+                row.icon = row:CreateTexture(nil, "ARTWORK")
+                row.icon:SetSize(20, 20)
+                row.icon:SetPoint("LEFT", 0, 0)
+                row.name = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+                row.name:SetPoint("LEFT", row.icon, "RIGHT", 8, 0)
+                row.remove = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
+                row.remove:SetSize(80, 22)
+                row.remove:SetPoint("RIGHT", 0, 0)
+                row.remove:SetText(L["IGNORE_REMOVE"])
+                ignoreRows[i] = row
+            end
+            row:ClearAllPoints()
+            if i == 1 then
+                row:SetPoint("TOP", addBox, "BOTTOM", 50, -14)
+            else
+                row:SetPoint("TOP", ignoreRows[i - 1], "BOTTOM", 0, -4)
+            end
+            local name, icon = ns.IgnoreList.GetSpellNameIcon(spellID)
+            row.icon:SetTexture(icon)
+            row.name:SetText(name or ("Spell #" .. spellID))
+            row.remove:SetScript("OnClick", function()
+                if ns.IgnoreList:Remove(spellID) then
+                    print("|cff00ccff[SpellCombo] |r" .. string.format(L["MSG_IGNORE_REMOVED"], name or spellID))
+                end
+            end)
+            row:Show()
+        end
+
+        -- Grow the scroll content so every row stays reachable.
+        content:SetSize(600, 950 + #ids * (ROW_HEIGHT + 4))
+    end
+    ns.IgnoreList:SetOnChanged(rebuildIgnoreList)
+    rebuildIgnoreList()
+
     if Settings and Settings.RegisterCanvasLayoutCategory then
         local category = Settings.RegisterCanvasLayoutCategory(panel, panel.name)
         Settings.RegisterAddOnCategory(category)
@@ -816,6 +925,9 @@ frame:SetScript("OnEvent", function(self, event, unit, castID, spellID)
         -- Default animation duration (seconds).
         if SpellComboHistoryDB.animDuration == nil then SpellComboHistoryDB.animDuration = 0.25 end
 
+        -- Initialize the ignore list from saved variables.
+        ns.IgnoreList:Init(SpellComboHistoryDB)
+
         -- Wire up the icon bar, injecting its config and settings getters.
         ns.HistoryBar:Init({
             anchor = anchor,
@@ -913,8 +1025,8 @@ frame:SetScript("OnEvent", function(self, event, unit, castID, spellID)
         local isPlayerSpell = (C_SpellBook and C_SpellBook.IsSpellInSpellBook and C_SpellBook.IsSpellInSpellBook(spellID))
                            or (IsPlayerSpell and IsPlayerSpell(spellID))
 
-        -- Not a player spell: nothing to do.
-        if not isPlayerSpell then
+        -- Not a player spell, or one the user chose to ignore: nothing to do.
+        if not isPlayerSpell or ns.IgnoreList:IsIgnored(spellID) then
             -- Drop the cast data.
             if castID then
                 pendingCasts[castID] = nil

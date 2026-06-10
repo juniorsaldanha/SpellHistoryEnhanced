@@ -18,6 +18,9 @@ handy for practicing tight rotations and minimizing GCD downtime.
   `RAMPAGE`, `INSANE`, `GODLIKE`, `LEGEND`.
 - **Animations** — icons animate in as you cast and out as they age off the
   end of the bar. Choose a style (None, Fade, Slide, Bounce) and speed.
+- **Ignore list** — exclude spells you don't care about (procs, trinkets,
+  racials). Right-click a history icon to ignore it, or manage the list in the
+  settings by spell ID, name, or link.
 - **Movable & lockable** — drag the bar anywhere; right-click to lock.
 - **Grid & snap** — optional alignment grid with snapping for precise placement.
 - **In-game settings** — adjust max icons, scale, background transparency,
@@ -64,6 +67,7 @@ handy for practicing tight rotations and minimizing GCD downtime.
 | **Spell Queue Window** | Adjusts the game's `SpellQueueWindow` CVar. Higher values queue pre-input spells more smoothly; lower values react faster but are more ping-sensitive. |
 | **Animation Style** | How icons enter/leave the bar: None, Fade, Slide, or Bounce. |
 | **Animation Speed** | Duration of the animations (0.1s–0.6s). |
+| **Ignore List** | Spells excluded from tracking. Add by ID/name/link or right-click a history icon; remove from the list here. |
 
 There are also buttons to check the current queue value, clear the history,
 and reset the bar position to center.
@@ -72,9 +76,6 @@ and reset the bar position to center.
 
 These are on the roadmap and not yet implemented:
 
-- **Ignore list** — a user-configurable list of spells to exclude from
-  tracking (e.g. trinket on-use, racials, off-GCD utilities you don't care
-  about).
 - **Stats & session tracking** — a session summary: uptime %, average wasted
   time between globals, best combo, and total casts.
 - **Per-spec profiles** — separate settings (position, max icons, scale, ...)

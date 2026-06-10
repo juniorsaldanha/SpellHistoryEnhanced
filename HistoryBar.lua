@@ -98,6 +98,15 @@ function HistoryBar:CreateIcon()
     f:SetScript("OnLeave", function()
         GameTooltip:Hide()
     end)
+    -- Right-click an icon to add that spell to the ignore list.
+    f:SetScript("OnMouseUp", function(self, button)
+        if button == "RightButton" and self.spellID and ns.IgnoreList then
+            if ns.IgnoreList:Add(self.spellID) then
+                local name = ns.IgnoreList.GetSpellNameIcon(self.spellID)
+                print("|cff00ccff[SpellCombo] |r" .. format(L["MSG_IGNORE_ADDED"], name or self.spellID))
+            end
+        end
+    end)
 
     -- Animatable state and how to apply it.
     f.state = { x = 0, y = 0, alpha = 1, scale = 1 }
