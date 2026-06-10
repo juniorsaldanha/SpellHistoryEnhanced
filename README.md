@@ -24,6 +24,9 @@ handy for practicing tight rotations and minimizing GCD downtime.
 - **Stats panel** — an optional on-screen readout of the current fight: GCD
   uptime, PERFECT count and rate, best combo, average wasted time, casts, and
   session length. Also available via `/sch`.
+- **Per-spec profiles** — every setting (position, size, animations, ignore
+  list, stats panel, ...) is saved separately for each specialization and
+  switches automatically when you change spec.
 - **Movable & lockable** — drag the bar anywhere; right-click to lock.
 - **Grid & snap** — optional alignment grid with snapping for precise placement.
 - **In-game settings** — adjust max icons, scale, background transparency,
@@ -74,6 +77,9 @@ handy for practicing tight rotations and minimizing GCD downtime.
 | **Show / Lock Stats Panel** | Toggle the on-screen stats readout and lock it in place. While unlocked, drag it; right-click it to lock. |
 | **Statistics** | A summary of the current/last fight, with Refresh and Reset buttons. |
 
+Settings are saved per specialization and switch automatically when you change
+spec; a fresh spec starts from your current settings.
+
 There are also buttons to check the current queue value, clear the history,
 and reset the bar position to center.
 
@@ -84,12 +90,9 @@ and reset the bar position to center.
 
 ## Planned Features
 
-These are on the roadmap and not yet implemented:
-
-- **Per-spec profiles** — separate settings (position, max icons, scale, ...)
-  per character specialization.
-
-Have an idea? Open an issue — see below.
+The original roadmap (animations, ignore list, stats & session tracking, and
+per-spec profiles) is now implemented. Have an idea for what's next? Open an
+issue — see below.
 
 ## Contributing
 

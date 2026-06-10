@@ -150,6 +150,18 @@ function StatsPanel:ApplyShown()
     if self.db.statsShown then self.frame:Show() else self.frame:Hide() end
 end
 
+-- Re-apply the saved position (used after a profile switch).
+function StatsPanel:ApplyPosition()
+    if not self.frame then return end
+    local db = self.db
+    self.frame:ClearAllPoints()
+    if db.statsPoint then
+        self.frame:SetPoint(db.statsPoint, UIParent, db.statsPoint, db.statsX or 0, db.statsY or 0)
+    else
+        self.frame:SetPoint("CENTER", UIParent, "CENTER", 250, -150)
+    end
+end
+
 function StatsPanel:Refresh()
     if not self.frame or not self.frame:IsShown() then return end
     local s = ns.Stats:Get()

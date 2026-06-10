@@ -342,6 +342,10 @@ function UpdateDummyFrames(show)
     ns.HistoryBar:SetInteractive(not show)
 end
 
+-- Refreshes the options panel widgets from the live settings. Assigned by
+-- InitializeOptions; called after a profile switch so an open panel updates.
+local refreshOptionsPanel
+
 -- Build the addon's settings panel.
 local function InitializeOptions()
     local panel = CreateFrame("Frame", "SpellComboHistoryOptionsPanel")
@@ -361,6 +365,11 @@ local function InitializeOptions()
     local title = content:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
     title:SetPoint("TOP", 0, -20)
     title:SetText(L["OPTIONS_TITLE"])
+
+    -- Per-spec profile note.
+    local profileNote = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    profileNote:SetPoint("TOP", title, "BOTTOM", 0, -6)
+    profileNote:SetText(L["PROFILE_NOTE"])
 
     -- Restart timeout slider.
     local slider = CreateFrame("Slider", "SpellComboHistoryRestartSlider", content, "OptionsSliderTemplate")
@@ -725,6 +734,23 @@ local function InitializeOptions()
     ns.IgnoreList:SetOnChanged(rebuildIgnoreList)
     rebuildIgnoreList()
 
+    -- Re-sync every widget from the live settings (after a profile switch).
+    function refreshOptionsPanel()
+        local db = SpellComboHistoryDB
+        slider:SetValue(db.restartTimeout)
+        lockCheck:SetChecked(db.isLocked)
+        gridCheck:SetChecked(db.useGrid)
+        maxIconsSlider:SetValue(db.maxIcons)
+        bgAlphaSlider:SetValue(db.bgAlpha or 0.5)
+        uiScaleSlider:SetValue(db.uiScale or 1.0)
+        animButton:SetText(animLabel())
+        animSpeedSlider:SetValue(db.animDuration or 0.25)
+        showStatsCheck:SetChecked(db.statsShown)
+        lockStatsCheck:SetChecked(db.statsLocked)
+        updateStatsSummary()
+        rebuildIgnoreList()
+    end
+
     if Settings and Settings.RegisterCanvasLayoutCategory then
         local category = Settings.RegisterCanvasLayoutCategory(panel, panel.name)
         Settings.RegisterAddOnCategory(category)
@@ -732,6 +758,34 @@ local function InitializeOptions()
         InterfaceOptions_AddCategory(panel)
     end
 
+end
+
+-- Re-apply every runtime setting from the live working set. Used at login and
+-- after a profile (spec) switch.
+local function ApplyAllSettings()
+    local db = SpellComboHistoryDB
+    -- Bar scale and position.
+    anchor:SetScale(db.uiScale or 1.0)
+    anchor:ClearAllPoints()
+    if db.point then
+        anchor:SetPoint(db.point, UIParent, db.point, db.x or 0, db.y or 0)
+    else
+        anchor:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+    end
+    -- Bar lock state, guides, and background.
+    anchor:EnableMouse(not db.isLocked)
+    UpdateDummyFrames(not db.isLocked)
+    UpdateMainBackground()
+    -- Reposition the icons under the (possibly new) max-icons setting.
+    ns.HistoryBar:Relayout()
+    -- Stats panel position / lock / visibility.
+    ns.StatsPanel:ApplyPosition()
+    ns.StatsPanel:ApplyLock()
+    ns.StatsPanel:ApplyShown()
+    -- Rebuild the ignore list display.
+    ns.IgnoreList:Notify()
+    -- Refresh the options panel widgets if it has been built.
+    if refreshOptionsPanel then refreshOptionsPanel() end
 end
 
 -- [Main analysis] State used to group a frame's spells and grade GCD/combo.
@@ -744,6 +798,10 @@ frame:RegisterEvent("UNIT_SPELLCAST_START")
 frame:RegisterEvent("PLAYER_REGEN_ENABLED")
 -- Combat start event.
 frame:RegisterEvent("PLAYER_REGEN_DISABLED")
+-- Profile lifecycle events.
+frame:RegisterEvent("PLAYER_LOGIN")
+frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+frame:RegisterEvent("PLAYER_LOGOUT")
 -- Pet battle events.
 frame:RegisterEvent("PET_BATTLE_OPENING_START")
 frame:RegisterEvent("PET_BATTLE_CLOSE")
@@ -1007,6 +1065,9 @@ frame:SetScript("OnEvent", function(self, event, unit, castID, spellID)
         ns.Stats:Init()
         ns.StatsPanel:Init(SpellComboHistoryDB)
 
+        -- Initialize per-spec profiles (activated at PLAYER_LOGIN).
+        ns.Profiles:Init(SpellComboHistoryDB)
+
         -- Wire up the icon bar, injecting its config and settings getters.
         ns.HistoryBar:Init({
             anchor = anchor,
@@ -1017,27 +1078,25 @@ frame:SetScript("OnEvent", function(self, event, unit, castID, spellID)
             getDuration = function() return (SpellComboHistoryDB and SpellComboHistoryDB.animDuration) or 0.25 end,
         })
 
-        -- Apply the UI scale.
-        anchor:SetScale(SpellComboHistoryDB.uiScale)
-
-        -- Restore the saved position if any.
-        if SpellComboHistoryDB.point then
-            -- Clear existing points.
-            anchor:ClearAllPoints()
-            -- Apply the saved anchor and offsets.
-            anchor:SetPoint(SpellComboHistoryDB.point, UIParent, SpellComboHistoryDB.point, SpellComboHistoryDB.x, SpellComboHistoryDB.y)
-        end
-
-        -- Enable/disable mouse input based on lock state.
-        anchor:EnableMouse(not SpellComboHistoryDB.isLocked)
-        -- Show the setup guides if unlocked.
-        UpdateDummyFrames(not SpellComboHistoryDB.isLocked)
-        -- Refresh the background bar size and transparency.
-        UpdateMainBackground()
-
-        -- Build the options panel.
+        -- Build the options panel, then apply all settings to the UI.
         InitializeOptions()
+        ApplyAllSettings()
         -- Done.
+        return
+    end
+    -- Activate the current spec's profile once spec info is available.
+    if event == "PLAYER_LOGIN" then
+        ns.Profiles:Activate(nil, ApplyAllSettings)
+        return
+    end
+    -- Switch profiles when the player changes specialization.
+    if event == "PLAYER_SPECIALIZATION_CHANGED" then
+        ns.Profiles:Activate(nil, ApplyAllSettings)
+        return
+    end
+    -- Persist the active profile on logout.
+    if event == "PLAYER_LOGOUT" then
+        ns.Profiles:SaveCurrent()
         return
     end
     -- When the player leaves combat.

@@ -48,6 +48,7 @@ L["LOCK_STATS"] = "Travar painel de estatísticas"
 L["STATS_REFRESH"] = "Atualizar"
 L["STATS_RESET"] = "Zerar estatísticas"
 L["MSG_STATS_RESET"] = "Estatísticas zeradas."
+L["PROFILE_NOTE"] = "As configurações são salvas separadamente para cada especialização."
 
 -- Chat messages (printed after the "[SpellCombo]" prefix).
 L["MSG_POSITION_LOCKED"] = "Posição travada com o clique direito."

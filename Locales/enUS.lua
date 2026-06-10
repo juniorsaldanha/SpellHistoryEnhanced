@@ -50,6 +50,7 @@ L["LOCK_STATS"] = "Lock Stats Panel"
 L["STATS_REFRESH"] = "Refresh"
 L["STATS_RESET"] = "Reset Stats"
 L["MSG_STATS_RESET"] = "Statistics reset."
+L["PROFILE_NOTE"] = "Settings are saved separately for each specialization."
 
 -- Chat messages (printed after the "[SpellCombo]" prefix).
 L["MSG_POSITION_LOCKED"] = "Position locked via Right-click."

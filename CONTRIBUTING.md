@@ -13,6 +13,7 @@ Animations.lua            # tween engine + pluggable animation strategies
 IgnoreList.lua            # the set of spells excluded from tracking
 Stats.lua                 # per-combat statistics model
 StatsPanel.lua            # optional on-screen stats readout (view over Stats)
+Profiles.lua              # per-specialization settings profiles
 HistoryBar.lua            # the on-screen icon bar (display manager)
 Locales/
   enUS.lua                # English (base) strings
@@ -24,10 +25,16 @@ LICENSE
 
 Files load in the order declared in the `.toc`: locales first (so the string
 table exists), then the modules (`Animations.lua`, `IgnoreList.lua`,
-`Stats.lua`, `StatsPanel.lua`, `HistoryBar.lua`, which expose `ns.Tween`,
-`ns.Animations`, `ns.IgnoreList`, `ns.Stats`, `ns.StatsPanel`, and
-`ns.HistoryBar` on the addon's private namespace), and finally
-`SpellComboHistory.lua`, which wires everything together.
+`Stats.lua`, `StatsPanel.lua`, `Profiles.lua`, `HistoryBar.lua`, which expose
+`ns.Tween`, `ns.Animations`, `ns.IgnoreList`, `ns.Stats`, `ns.StatsPanel`,
+`ns.Profiles`, and `ns.HistoryBar` on the addon's private namespace), and
+finally `SpellComboHistory.lua`, which wires everything together.
+
+Settings live as flat keys on `SpellComboHistoryDB` (the "working set" every
+module reads). `Profiles.lua` stores a copy of those keys per specialization
+under `db.profiles[specID]` and swaps the working set on spec change. If you add
+a new saved setting that should be per-spec, add its key to `PROFILED_KEYS` in
+`Profiles.lua`.
 
 ### Adding an animation style
 

@@ -12,5 +12,6 @@ Animations.lua
 IgnoreList.lua
 Stats.lua
 StatsPanel.lua
+Profiles.lua
 HistoryBar.lua
 SpellComboHistory.lua
