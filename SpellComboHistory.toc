@@ -1,0 +1,7 @@
+## Interface: 120000, 120001, 120005
+## Title: Spell Combo History
+## Notes: 스킬 히스토리와 딜 로스 시간을 표시합니다.
+## Author: MilkTong
+## SavedVariables: SpellComboHistoryDB
+
+SpellComboHistory.lua
