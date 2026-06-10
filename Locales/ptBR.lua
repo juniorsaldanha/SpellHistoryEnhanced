@@ -21,6 +21,12 @@ L["QUEUE_HELP"] = "Valores mais altos permitem que magias pré-inseridas sejam a
 L["CHECK_CURRENT"] = "Verificar valor atual"
 L["CLEAR_HISTORY"] = "Limpar histórico"
 L["RESET_POSITION"] = "Redefinir posição"
+L["ANIM_STYLE"] = "Estilo de animação"
+L["ANIM_SPEED"] = "Velocidade da animação"
+L["ANIM_NONE"] = "Nenhuma"
+L["ANIM_FADE"] = "Esmaecer"
+L["ANIM_SLIDE"] = "Deslizar"
+L["ANIM_BOUNCE"] = "Saltar"
 
 -- Chat messages (printed after the "[SpellCombo]" prefix).
 L["MSG_POSITION_LOCKED"] = "Posição travada com o clique direito."

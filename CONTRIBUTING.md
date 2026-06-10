@@ -8,16 +8,41 @@ add a translation.
 
 ```
 SpellComboHistory.toc     # addon manifest; declares load order
-SpellComboHistory.lua     # all addon logic and UI
+SpellComboHistory.lua     # events, GCD/combo analysis, settings panel, wiring
+Animations.lua            # tween engine + pluggable animation strategies
+HistoryBar.lua            # the on-screen icon bar (display manager)
 Locales/
   enUS.lua                # English (base) strings
+  ptBR.lua                # Brazilian Portuguese
 README.md
 CONTRIBUTING.md
 LICENSE
 ```
 
-`Locales\enUS.lua` is loaded **before** `SpellComboHistory.lua` so the string
-table exists before the main file runs.
+Files load in the order declared in the `.toc`: locales first (so the string
+table exists), then `Animations.lua` and `HistoryBar.lua` (which expose
+`ns.Tween`, `ns.Animations`, and `ns.HistoryBar` on the addon's private
+namespace), and finally `SpellComboHistory.lua`, which wires everything
+together.
+
+### Adding an animation style
+
+Animations are pluggable. Register a new strategy in `Animations.lua` — no
+other file needs to change:
+
+```lua
+ns.Animations:Register({
+    key = "myStyle",          -- stored in SavedVariables
+    labelKey = "ANIM_MYSTYLE", -- a locale key for the display name
+    PlayIn  = function(bar, icon, tx, ty, duration) ... end,
+    PlayMove = function(bar, icon, tx, ty, duration) ... end,
+    PlayOut = function(bar, icon, duration, onComplete) ... end,
+})
+```
+
+Add the `ANIM_MYSTYLE` key to the locales, and it automatically appears in the
+settings cycle button. Use `ns.Tween:Start(icon, duration, target, easing,
+onComplete)` to animate the icon's `state` fields (`x`, `y`, `alpha`, `scale`).
 
 ## Development Setup
 

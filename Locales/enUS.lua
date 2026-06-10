@@ -23,6 +23,12 @@ L["QUEUE_HELP"] = "Higher values allow pre-input spells to trigger smoothly but 
 L["CHECK_CURRENT"] = "Check Current"
 L["CLEAR_HISTORY"] = "Clear History"
 L["RESET_POSITION"] = "Reset Position"
+L["ANIM_STYLE"] = "Animation Style"
+L["ANIM_SPEED"] = "Animation Speed"
+L["ANIM_NONE"] = "None"
+L["ANIM_FADE"] = "Fade"
+L["ANIM_SLIDE"] = "Slide"
+L["ANIM_BOUNCE"] = "Bounce"
 
 -- Chat messages (printed after the "[SpellCombo]" prefix).
 L["MSG_POSITION_LOCKED"] = "Position locked via Right-click."

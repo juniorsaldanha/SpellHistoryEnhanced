@@ -8,4 +8,6 @@
 
 Locales\enUS.lua
 Locales\ptBR.lua
+Animations.lua
+HistoryBar.lua
 SpellComboHistory.lua

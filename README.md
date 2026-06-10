@@ -16,10 +16,13 @@ handy for practicing tight rotations and minimizing GCD downtime.
   `PERFECT` when you waste nothing (within your latency).
 - **Combo streaks** — consecutive PERFECT casts build tiers: `STREAK`,
   `RAMPAGE`, `INSANE`, `GODLIKE`, `LEGEND`.
+- **Animations** — icons animate in as you cast and out as they age off the
+  end of the bar. Choose a style (None, Fade, Slide, Bounce) and speed.
 - **Movable & lockable** — drag the bar anywhere; right-click to lock.
 - **Grid & snap** — optional alignment grid with snapping for precise placement.
 - **In-game settings** — adjust max icons, scale, background transparency,
-  restart timeout, and the spell queue window, all from the options panel.
+  restart timeout, the spell queue window, and animation style/speed, all from
+  the options panel.
 - **Spell tooltips** — hover any icon to see the spell tooltip.
 - **Pet battle aware** — hides itself during pet battles.
 
@@ -59,6 +62,8 @@ handy for practicing tight rotations and minimizing GCD downtime.
 | **Background Transparency** | Opacity of the bar background. |
 | **UI Scale** | Overall size of the bar (50%–200%). |
 | **Spell Queue Window** | Adjusts the game's `SpellQueueWindow` CVar. Higher values queue pre-input spells more smoothly; lower values react faster but are more ping-sensitive. |
+| **Animation Style** | How icons enter/leave the bar: None, Fade, Slide, or Bounce. |
+| **Animation Speed** | Duration of the animations (0.1s–0.6s). |
 
 There are also buttons to check the current queue value, clear the history,
 and reset the bar position to center.
@@ -67,8 +72,6 @@ and reset the bar position to center.
 
 These are on the roadmap and not yet implemented:
 
-- **Animations** — new spell icons fade/slide in when cast, and fade out as
-  they age off the end of the bar.
 - **Ignore list** — a user-configurable list of spells to exclude from
   tracking (e.g. trinket on-use, racials, off-GCD utilities you don't care
   about).

@@ -19,11 +19,12 @@
 --     - [Grading]: if wasteTime <= world latency (ping) it is a PERFECT and
 --       combo +1
 --
---  4. UI refresh (UpdateHistory)
---     - [Shift icons]: push existing icons one slot to the left
---     - [New icon]: build the latest spell's icon in slot 1 and set its texture
---     - [Text]: show the result (START, PERFECT, wasted seconds) and combo tier
---       (STREAK, etc.)
+--  4. UI refresh (HistoryBar:Push, in HistoryBar.lua)
+--     - [Queue]: push the new cast to the front; shift the rest left
+--     - [Content]: set the icon texture and result text (START, PERFECT,
+--       wasted seconds) and combo tier (STREAK, etc.)
+--     - [Animate]: delegate in/move/out motion to the selected animation
+--       strategy (Animations.lua: none / fade / slide / bounce)
 --
 --  5. Settings (InitializeOptions)
 --     - React to user settings (lock, count, transparency, ...) and refresh the
@@ -84,8 +85,6 @@ local lastChannelEndTime = 0
 local perfectCombo = 0
 -- Whether to show "START" on the first cast after entering combat.
 local pendingStart = false
--- Table holding the created icon objects.
-local icons = {}
 -- On-screen icon size, in pixels.
 local ICON_SIZE = 40
 -- Spacing between icons, in pixels.
@@ -311,10 +310,8 @@ function UpdateDummyFrames(show)
         anchor:SetHitRectInsets(0, 0, 0, 0)
         -- Hide the grid.
         ToggleGrid(false)
-        -- Restore icon mouse interaction.
-        for i = 1, #icons do
-            if icons[i] then icons[i]:EnableMouse(true) end
-        end
+        -- Restore icon mouse interaction (tooltips).
+        ns.HistoryBar:SetInteractive(true)
         -- Done.
         return
     end
@@ -336,215 +333,7 @@ function UpdateDummyFrames(show)
     anchor:SetHitRectInsets(-(blockWidth - ICON_SIZE), 0, 0, 0)
 
     -- Disable icon mouse interaction so it does not block dragging.
-    for i = 1, #icons do
-        if icons[i] then
-            icons[i]:EnableMouse(not show)
-        end
-    end
-end
-
--- Create a single spell icon frame.
-local function CreateIcon()
-    -- New frame parented to the anchor (so it scales together).
-    local f = CreateFrame("Frame", nil, anchor)
-    -- Default icon size.
-    f:SetSize(ICON_SIZE, ICON_SIZE)
-
-    -- Texture object that shows the spell art.
-    f.tex = f:CreateTexture(nil, "ARTWORK")
-    -- Fill the frame with the texture.
-    f.tex:SetAllPoints()
-
-    -- Font string for the wasted time or PERFECT label.
-    f.text = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    -- Place it just above the icon (5px padding).
-    f.text:SetPoint("BOTTOM", f, "TOP", 0, 5)
-    -- Default to red (wasted-time color).
-    f.text:SetTextColor(1, 0, 0)
-
-    -- Read the default font and size.
-    local font, size = f.text:GetFont()
-    -- Add an outline for readability.
-    f.text:SetFont(font, size, "OUTLINE")
-    -- Store the original font for later resizing.
-    f.baseFont = font
-    -- Store the original size.
-    f.baseSize = size
-
-    -- Separate font string for the combo tier label (STREAK, etc.).
-    f.comboText = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    -- Place it above the wasted-time text.
-    f.comboText:SetPoint("BOTTOM", f.text, "TOP", 0, 2)
-    -- Slightly smaller than the base font.
-    f.comboText:SetFont(font, size * 0.9, "OUTLINE")
-    -- Gold-ish color for the combo tier.
-    f.comboText:SetTextColor(1, 0.8, 0)
-
-    -- Enable mouse enter/leave events.
-    f:EnableMouse(true)
-    -- Show the spell tooltip on mouse-over.
-    f:SetScript("OnEnter", function(self)
-        -- Only if this icon has a spell ID.
-        if self.spellID then
-            -- Anchor the tooltip above the icon.
-            GameTooltip:SetOwner(self, "ANCHOR_TOP")
-            -- Load the spell's tooltip info.
-            GameTooltip:SetSpellByID(self.spellID)
-            -- Show the tooltip.
-            GameTooltip:Show()
-        end
-    end)
-    -- Hide the tooltip when the mouse leaves.
-    f:SetScript("OnLeave", function(self)
-        -- Hide the tooltip.
-        GameTooltip:Hide()
-    end)
-
-    -- Hidden until used.
-    f:Hide()
-    -- Return the created icon frame.
-    return f
-end
-
--- Combo tiers: label and color by combo count.
-local COMBO_LEVELS = {
-    -- 50+ combo: legendary.
-    {count = 50, text = L["COMBO_LEGEND"], color = {1, 0.2, 0.2}},
-    -- 20+ combo: godlike.
-    {count = 20, text = L["COMBO_GODLIKE"], color = {0, 1, 1}},
-    -- 10+ combo: insane.
-    {count = 10, text = L["COMBO_INSANE"], color = {1, 0.2, 0.8}},
-    -- 5+ combo: rampage.
-    {count = 5,  text = L["COMBO_RAMPAGE"], color = {1, 0.5, 0}},
-    -- 2+ combo: streak.
-    {count = 2,  text = L["COMBO_STREAK"],  color = {1, 0.8, 0}},
-}
-
--- Return the label and color matching the current combo count.
-local function GetComboTextAndColor(combo)
-    -- Check tiers from highest to lowest.
-    for _, level in ipairs(COMBO_LEVELS) do
-        -- If the combo meets this tier's threshold.
-        if combo >= level.count then
-            -- Return "<count>\n<label>" plus the color.
-            return combo .. "\n" .. level.text, unpack(level.color)
-        end
-    end
-    -- Below the lowest threshold: nothing.
-    return nil
-end
-
--- Update the cast history and place icons on screen.
-local function UpdateHistory(spellID, wasteTime, isOffGCD, isStart, isPerfect)
-    -- Max icons to display.
-    local maxIcons = (SpellComboHistoryDB and SpellComboHistoryDB.maxIcons) or 6
-    -- Shift existing icons one slot to the left (reverse order).
-    for i = maxIcons, 2, -1 do
-        -- If the previous slot has a visible icon.
-        if icons[i-1] and icons[i-1]:IsShown() then
-            -- Create this slot's icon if missing.
-            if not icons[i] then icons[i] = CreateIcon() end
-            -- Copy the previous slot's spell art.
-            icons[i].tex:SetTexture(icons[i-1].tex:GetTexture())
-            -- Copy the previous slot's wasted-time text.
-            icons[i].text:SetText(icons[i-1].text:GetText())
-            -- Copy the previous slot's text color.
-            icons[i].text:SetTextColor(icons[i-1].text:GetTextColor())
-            -- Copy the previous slot's combo tier text.
-            icons[i].comboText:SetText(icons[i-1].comboText:GetText())
-            -- Copy the previous slot's combo tier color.
-            icons[i].comboText:SetTextColor(icons[i-1].comboText:GetTextColor())
-            -- Copy the previous slot's spell ID (for tooltips).
-            icons[i].spellID = icons[i-1].spellID
-
-            -- Copy the previous slot's font settings (size, flags, ...).
-            local font, size, flags = icons[i-1].text:GetFont()
-            -- Apply them to this slot.
-            icons[i].text:SetFont(font, size, flags)
-
-            -- Push this slot further left from the anchor.
-            icons[i]:SetPoint("CENTER", anchor, "CENTER", -((i-1) * (ICON_SIZE + SPACING)), 0)
-            -- Show the icon.
-            icons[i]:Show()
-        end
-    end
-
-    -- Create slot 1 (the latest spell) if missing.
-    if not icons[1] then
-        -- New icon.
-        icons[1] = CreateIcon()
-    end
-    -- Place icon 1 at the anchor center.
-    icons[1]:SetPoint("CENTER", anchor, "CENTER", 0, 0)
-
-    -- Texture ID for the new spell's icon.
-    local tex
-    -- Try the modern spell info API.
-    if C_Spell and C_Spell.GetSpellInfo then
-        -- Fetch spell info.
-        local spellInfo = C_Spell.GetSpellInfo(spellID)
-        -- Extract the icon ID if present.
-        tex = spellInfo and spellInfo.iconID
-    else
-        -- Fetch the icon via the legacy API.
-        local _
-        _, _, tex = GetSpellInfo(spellID)
-    end
-    -- Apply the spell art to icon 1.
-    icons[1].tex:SetTexture(tex)
-    -- Store the spell ID on icon 1.
-    icons[1].spellID = spellID
-
-    -- Re-check the player's combat state.
-    local inCombat = InCombatLockdown() or UnitAffectingCombat("player")
-    -- Local reference to icon 1.
-    local icon1 = icons[1]
-    -- Local references to the text objects.
-    local txt, comboTxt = icon1.text, icon1.comboText
-
-    -- This spell starts/restarts a combo.
-    if isStart then
-        -- Slightly smaller font for emphasis.
-        txt:SetFont(icon1.baseFont, icon1.baseSize * 0.8, "OUTLINE")
-        -- Blue-ish color.
-        txt:SetTextColor(0, 0.6, 1)
-        -- Show START or RESTART.
-        txt:SetText(isStart)
-        -- Hide the combo tier (it just reset).
-        comboTxt:SetText("")
-    -- Out of combat, or an off-GCD utility spell.
-    elseif not inCombat or isOffGCD then
-        -- Hide the wasted-time text.
-        txt:SetText("")
-        -- Hide the combo tier text.
-        comboTxt:SetText("")
-    -- Missed PERFECT and there is wasted time.
-    elseif wasteTime and not isPerfect then
-        -- Restore the base font size.
-        txt:SetFont(icon1.baseFont, icon1.baseSize, "OUTLINE")
-        -- Red to signal the waste.
-        txt:SetTextColor(1, 0, 0)
-        -- Show the wasted time to two decimals.
-        txt:SetText(string.format("%.2fs", wasteTime))
-        -- Combo broke, so hide the tier text.
-        comboTxt:SetText("")
-    -- PERFECT.
-    else
-        -- Smaller font to keep it tidy.
-        txt:SetFont(icon1.baseFont, icon1.baseSize * 0.8, "OUTLINE")
-        -- Green to signal success.
-        txt:SetTextColor(0, 1, 0)
-        -- Show PERFECT.
-        txt:SetText(L["PERFECT"])
-        -- Get the tier label and color for the current combo.
-        local comboStr, r, g, b = GetComboTextAndColor(perfectCombo)
-        -- Show the label if any, otherwise blank.
-        comboTxt:SetText(comboStr or "")
-        -- Apply the tier color only when there is a label.
-        if comboStr then comboTxt:SetTextColor(r, g, b) end
-    end
-    -- Finally show icon 1.
-    icon1:Show()
+    ns.HistoryBar:SetInteractive(not show)
 end
 
 -- Build the addon's settings panel.
@@ -559,7 +348,7 @@ local function InitializeOptions()
 
     -- [2] Content frame that actually holds the widgets.
     local content = CreateFrame("Frame", nil, scrollFrame)
-    content:SetSize(600, 750) -- adjust this height if you add more settings
+    content:SetSize(600, 950) -- adjust this height if you add more settings
     scrollFrame:SetScrollChild(content)
 
     -- Title.
@@ -622,9 +411,7 @@ local function InitializeOptions()
         value = math.floor(value)
         SpellComboHistoryDB.maxIcons = value
         _G[self:GetName() .. "Text"]:SetText(L["MAX_ICONS"] .. ": " .. value)
-        for i = value + 1, #icons do
-            if icons[i] then icons[i]:Hide() end
-        end
+        ns.HistoryBar:Relayout()
         if not SpellComboHistoryDB.isLocked then
             UpdateDummyFrames(true)
         end
@@ -705,12 +492,7 @@ local function InitializeOptions()
     clearButton:SetPoint("TOP", checkButton, "BOTTOM", 0, -10)
     clearButton:SetText(L["CLEAR_HISTORY"])
     clearButton:SetScript("OnClick", function()
-        for i = 1, #icons do
-            if icons[i] then
-                icons[i]:Hide()
-                icons[i].spellID = nil
-            end
-        end
+        ns.HistoryBar:Clear()
         perfectCombo = 0
         print("|cff00ccff[SpellCombo] |r" .. L["MSG_HISTORY_CLEARED"])
     end)
@@ -732,6 +514,41 @@ local function InitializeOptions()
         SpellComboHistoryDB.y = y
 
         print("|cff00ccff[SpellCombo] |r" .. L["MSG_POSITION_RESET"])
+    end)
+
+    -- Animation style cycle button (None -> Fade -> Slide -> Bounce -> ...).
+    local animButton = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
+    animButton:SetSize(220, 30)
+    animButton:SetPoint("TOP", resetPosButton, "BOTTOM", 0, -30)
+    local function animLabel()
+        return L["ANIM_STYLE"] .. ": " .. L[ns.Animations:Get(SpellComboHistoryDB.animStyle).labelKey]
+    end
+    animButton:SetText(animLabel())
+    animButton:SetScript("OnClick", function(self)
+        local list = ns.Animations:List()
+        -- Find the current style's position, then advance to the next one.
+        local idx = 1
+        for i, strat in ipairs(list) do
+            if strat.key == SpellComboHistoryDB.animStyle then idx = i break end
+        end
+        SpellComboHistoryDB.animStyle = list[(idx % #list) + 1].key
+        self:SetText(animLabel())
+    end)
+
+    -- Animation speed (duration) slider.
+    local animSpeedSlider = CreateFrame("Slider", "SpellComboHistoryAnimSpeedSlider", content, "OptionsSliderTemplate")
+    animSpeedSlider:SetPoint("TOP", animButton, "BOTTOM", 0, -40)
+    animSpeedSlider:SetMinMaxValues(0.1, 0.6)
+    animSpeedSlider:SetValueStep(0.05)
+    animSpeedSlider:SetObeyStepOnDrag(true)
+    animSpeedSlider:SetValue(SpellComboHistoryDB.animDuration or 0.25)
+    _G[animSpeedSlider:GetName() .. "Low"]:SetText("0.1s")
+    _G[animSpeedSlider:GetName() .. "High"]:SetText("0.6s")
+    _G[animSpeedSlider:GetName() .. "Text"]:SetText(L["ANIM_SPEED"] .. ": " .. string.format("%.2fs", SpellComboHistoryDB.animDuration or 0.25))
+    animSpeedSlider:SetScript("OnValueChanged", function(self, value)
+        value = math.floor(value * 20 + 0.5) / 20
+        SpellComboHistoryDB.animDuration = value
+        _G[self:GetName() .. "Text"]:SetText(L["ANIM_SPEED"] .. ": " .. string.format("%.2fs", value))
     end)
 
     if Settings and Settings.RegisterCanvasLayoutCategory then
@@ -972,7 +789,7 @@ local function ProcessFrameSpells()
         end
 
         -- Send all the info (spell ID, waste, off-GCD, ...) to refresh the UI.
-        UpdateHistory(sp.spellID, wasteTime, isOffGCD, isStart, isPerfect)
+        ns.HistoryBar:Push(sp.spellID, wasteTime, isOffGCD, isStart, isPerfect, perfectCombo)
     end
 end
 
@@ -994,6 +811,20 @@ frame:SetScript("OnEvent", function(self, event, unit, castID, spellID)
         if SpellComboHistoryDB.uiScale == nil then SpellComboHistoryDB.uiScale = 1.0 end
         -- Default grid mode.
         if SpellComboHistoryDB.useGrid == nil then SpellComboHistoryDB.useGrid = true end
+        -- Default animation style.
+        if SpellComboHistoryDB.animStyle == nil then SpellComboHistoryDB.animStyle = "slide" end
+        -- Default animation duration (seconds).
+        if SpellComboHistoryDB.animDuration == nil then SpellComboHistoryDB.animDuration = 0.25 end
+
+        -- Wire up the icon bar, injecting its config and settings getters.
+        ns.HistoryBar:Init({
+            anchor = anchor,
+            iconSize = ICON_SIZE,
+            spacing = SPACING,
+            getMaxIcons = function() return (SpellComboHistoryDB and SpellComboHistoryDB.maxIcons) or 6 end,
+            getAnimation = function() return ns.Animations:Get(SpellComboHistoryDB.animStyle) end,
+            getDuration = function() return (SpellComboHistoryDB and SpellComboHistoryDB.animDuration) or 0.25 end,
+        })
 
         -- Apply the UI scale.
         anchor:SetScale(SpellComboHistoryDB.uiScale)
