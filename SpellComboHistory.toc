@@ -1,7 +1,10 @@
 ## Interface: 120000, 120001, 120005
 ## Title: Spell Combo History
-## Notes: 스킬 히스토리와 딜 로스 시간을 표시합니다.
-## Author: MilkTong
+## Notes: Shows your spell cast history and the time wasted between global cooldowns.
+## Author: Junior Saldanha
+## Version: 1.0.0
+## X-License: MIT
 ## SavedVariables: SpellComboHistoryDB
 
+Locales\enUS.lua
 SpellComboHistory.lua
