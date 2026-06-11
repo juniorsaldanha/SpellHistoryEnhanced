@@ -18,6 +18,7 @@ ns.Profiles = Profiles
 local PROFILED_KEYS = {
     "restartTimeout", "isLocked", "maxIcons", "bgAlpha", "uiScale", "useGrid",
     "animStyle", "animDuration", "statsShown", "statsLocked", "showTrinkets",
+    "barShown",
     "point", "x", "y", "statsPoint", "statsX", "statsY",
 }
 

@@ -52,6 +52,8 @@ function Options:Build()
 
     addCheckbox(category, "SHE_useGrid", "useGrid", L["USE_GRID_SNAP"], true, nil, nil)
     addCheckbox(category, "SHE_showTrinkets", "showTrinkets", L["SHOW_TRINKETS"], true, L["SHOW_TRINKETS_TOOLTIP"], nil)
+    addCheckbox(category, "SHE_barShown", "barShown", L["SHOW_BAR"], true, L["SHOW_BAR_TOOLTIP"],
+        function() ns.Anchor:ApplyShown() end)
 
     -- ===== Appearance =====
     layout:AddInitializer(CreateSettingsListSectionHeaderInitializer(L["SECTION_APPEARANCE"]))

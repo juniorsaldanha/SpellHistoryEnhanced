@@ -19,6 +19,7 @@ Config.defaults = {
     statsShown     = true,
     statsLocked    = true,
     showTrinkets   = true,
+    barShown       = true,
 }
 
 -- Transient grading state, shared by Engine/CastTracker and Engine/GcdAnalyzer.

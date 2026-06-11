@@ -167,11 +167,25 @@ anchor:SetScript("OnEnter", function()
 end)
 anchor:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
+-- Right-click the empty bar to open the cast-list menu.
+anchor:SetScript("OnMouseUp", function(self, button)
+    if button == "RightButton" then ns.HistoryBar:OpenMenu(self) end
+end)
+
 -- ---------------------------------------------------------------------------
 -- Settings application.
 -- ---------------------------------------------------------------------------
 function Anchor:ApplyScale()
     anchor:SetScale(ns.Config.db.uiScale or 1.0)
+end
+
+-- Show or hide the whole bar (the icons are children of the anchor).
+function Anchor:ApplyShown()
+    if ns.Config.db.barShown == false then
+        anchor:Hide()
+    else
+        anchor:Show()
+    end
 end
 
 function Anchor:ApplyPosition()

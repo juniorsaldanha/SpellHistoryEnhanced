@@ -12,6 +12,7 @@ local function ApplyAllSettings()
     ns.Anchor:ApplyScale()
     ns.Anchor:ApplyPosition()
     ns.Anchor:UpdateBackground()
+    ns.Anchor:ApplyShown()
     ns.HistoryBar:Relayout()
     ns.StatsPanel:ApplyPosition()
     ns.StatsPanel:ApplyShown()
@@ -76,7 +77,7 @@ frame:SetScript("OnEvent", function(self, event, arg1)
         return
     end
     if event == "PET_BATTLE_CLOSE" then
-        ns.Anchor.frame:Show()
+        ns.Anchor:ApplyShown()
         return
     end
 end)

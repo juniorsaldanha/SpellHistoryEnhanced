@@ -105,11 +105,8 @@ function HistoryBar:CreateIcon()
     end)
     -- Right-click an icon to add that spell to the ignore list.
     f:SetScript("OnMouseUp", function(self, button)
-        if button == "RightButton" and self.spellID and ns.IgnoreList then
-            if ns.IgnoreList:Add(self.spellID) then
-                local name = ns.IgnoreList.GetSpellNameIcon(self.spellID)
-                print("|cff00ccff[SpellHistory] |r" .. format(L["MSG_IGNORE_ADDED"], name or self.spellID))
-            end
+        if button == "RightButton" and self.spellID then
+            HistoryBar:OpenMenu(self, self.spellID)
         end
     end)
     -- Shift + left-drag on an icon moves the whole bar.
@@ -278,6 +275,38 @@ function HistoryBar:SetInteractive(enabled)
     self.interactive = enabled
     for _, ic in ipairs(self.active) do
         ic:EnableMouse(enabled)
+    end
+end
+
+-- Right-click context menu for the cast list. When opened from an icon,
+-- `spellID` is set and an "Ignore <spell>" item is added on top.
+function HistoryBar:OpenMenu(owner, spellID)
+    local function build(_, root)
+        if spellID then
+            local name = ns.IgnoreList.GetSpellNameIcon(spellID)
+            root:CreateButton(format(L["MENU_IGNORE_SPELL"], name or spellID), function()
+                if ns.IgnoreList:Add(spellID) then
+                    print(ns.Constants.PRINT_PREFIX .. format(L["MSG_IGNORE_ADDED"], name or spellID))
+                end
+            end)
+        end
+        root:CreateButton(L["MENU_HIDE_BAR"], function()
+            ns.Config.db.barShown = false
+            ns.Anchor:ApplyShown()
+            if ns.Options and ns.Options.Refresh then ns.Options:Refresh() end
+        end)
+        root:CreateButton(L["MENU_OPEN_OPTIONS"], function()
+            if ns.optionsCategory and Settings and Settings.OpenToCategory then
+                Settings.OpenToCategory(ns.optionsCategory:GetID())
+            end
+        end)
+        root:CreateButton(L["MENU_CLEAR_LIST"], function()
+            HistoryBar:Clear()
+            ns.Config.state.perfectCombo = 0
+        end)
+    end
+    if MenuUtil and MenuUtil.CreateContextMenu then
+        MenuUtil.CreateContextMenu(owner, build)
     end
 end
 
