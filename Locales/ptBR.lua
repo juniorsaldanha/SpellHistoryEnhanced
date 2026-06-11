@@ -5,8 +5,16 @@ if GetLocale() ~= "ptBR" then return end
 local _, ns = ...
 local L = ns.L
 
--- Movable anchor hint shown while the bar is unlocked.
-L["MOVE_HINT"] = "MOVER\nClique direito para travar"
+-- Movable anchor hint (segure Shift e arraste para mover a barra).
+L["MOVE_HINT"] = "Shift + arrastar para mover"
+
+-- Cabeçalhos das seções e o menu da engrenagem do painel.
+L["SECTION_BEHAVIOR"] = "Comportamento"
+L["SECTION_APPEARANCE"] = "Aparência"
+L["SECTION_POSITION"] = "Posição"
+L["MENU_HIDE_PANEL"] = "Ocultar painel"
+L["MENU_RESET_STATS"] = "Zerar estatísticas"
+L["MENU_OPEN_OPTIONS"] = "Abrir opções"
 
 -- Options panel.
 L["OPTIONS_TITLE"] = "Configurações do Spell History Enhanced"
@@ -42,7 +50,7 @@ L["STATS_BEST_COMBO"] = "Melhor combo"
 L["STATS_AVG_WASTE"] = "Desperdício méd."
 L["STATS_CASTS"] = "Conjurações"
 L["STATS_SESSION"] = "Sessão"
-L["STATS_MOVE_HINT"] = "Clique direito para travar"
+L["STATS_MOVE_HINT"] = "Shift + arrastar para mover"
 L["SHOW_STATS"] = "Mostrar painel de estatísticas"
 L["LOCK_STATS"] = "Travar painel de estatísticas"
 L["STATS_REFRESH"] = "Atualizar"

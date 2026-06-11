@@ -7,8 +7,16 @@ local _, ns = ...
 ns.L = ns.L or {}
 local L = ns.L
 
--- Movable anchor hint shown while the bar is unlocked.
-L["MOVE_HINT"] = "MOVE\nRight-click to Lock"
+-- Movable anchor hint (hold Shift and drag to move the bar).
+L["MOVE_HINT"] = "Shift-drag to move"
+
+-- Settings section headers and the stats-panel gear menu.
+L["SECTION_BEHAVIOR"] = "Behavior"
+L["SECTION_APPEARANCE"] = "Appearance"
+L["SECTION_POSITION"] = "Position"
+L["MENU_HIDE_PANEL"] = "Hide panel"
+L["MENU_RESET_STATS"] = "Reset stats"
+L["MENU_OPEN_OPTIONS"] = "Open options"
 
 -- Options panel.
 L["OPTIONS_TITLE"] = "Spell History Enhanced Settings"
@@ -44,7 +52,7 @@ L["STATS_BEST_COMBO"] = "Best combo"
 L["STATS_AVG_WASTE"] = "Avg waste"
 L["STATS_CASTS"] = "Casts"
 L["STATS_SESSION"] = "Session"
-L["STATS_MOVE_HINT"] = "Right-click to Lock"
+L["STATS_MOVE_HINT"] = "Shift-drag to move"
 L["SHOW_STATS"] = "Show Stats Panel"
 L["LOCK_STATS"] = "Lock Stats Panel"
 L["STATS_REFRESH"] = "Refresh"
