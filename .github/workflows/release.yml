@@ -17,12 +17,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      # CurseForge is published by its own "Automatic Packaging" (it watches the
-      # linked GitHub repo for tags), so CF_API_KEY is intentionally NOT passed
-      # here to avoid double-uploading. This Action handles Wago + the GitHub
-      # release only.
+      # CurseForge and Wago both publish from GitHub on their own:
+      #   - CurseForge: "Automatic Packaging" watches the linked repo for tags.
+      #   - Wago: a GitHub webhook on the "Releases" event.
+      # So this Action only builds the zip and creates the GitHub release (which
+      # in turn fires the Wago webhook). No CF/Wago tokens are passed here, to
+      # avoid double uploads.
       - name: Package and release
         uses: BigWigsMods/packager@v2
         env:
           GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
-          WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
