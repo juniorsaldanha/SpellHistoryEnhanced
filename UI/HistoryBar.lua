@@ -16,6 +16,7 @@ local UnitAffectingCombat = UnitAffectingCombat
 local C_Spell = C_Spell
 local GetSpellInfo = GetSpellInfo or function(id) return C_Spell.GetSpellInfo(id) end
 local wipe = wipe
+local IsShiftKeyDown = IsShiftKeyDown
 local format = string.format
 
 local HistoryBar = {}
@@ -58,6 +59,8 @@ function HistoryBar:Init(opts)
     self.active = {}      -- ordered, index 1 = newest
     self.pool = {}        -- free icons ready to reuse
     self.interactive = false
+    self.beginDrag = opts.beginDrag
+    self.endDrag = opts.endDrag
 end
 
 -- Build a single icon frame. The frame carries its own animatable `state`
@@ -106,6 +109,14 @@ function HistoryBar:CreateIcon()
                 print("|cff00ccff[SpellHistory] |r" .. format(L["MSG_IGNORE_ADDED"], name or self.spellID))
             end
         end
+    end)
+    -- Shift + left-drag on an icon moves the whole bar.
+    f:RegisterForDrag("LeftButton")
+    f:SetScript("OnDragStart", function()
+        if IsShiftKeyDown() and HistoryBar.beginDrag then HistoryBar.beginDrag() end
+    end)
+    f:SetScript("OnDragStop", function()
+        if HistoryBar.endDrag then HistoryBar.endDrag() end
     end)
 
     -- Animatable state and how to apply it.
@@ -267,3 +278,8 @@ function HistoryBar:SetInteractive(enabled)
         ic:EnableMouse(enabled)
     end
 end
+
+-- Drive the bar from graded casts published by the engine.
+ns.EventBus:Subscribe("CAST_GRADED", function(p)
+    HistoryBar:Push(p.spellID, p.wasteTime, p.isOffGCD, p.isStart, p.isPerfect, p.comboCount)
+end)

@@ -103,3 +103,11 @@ function Stats:Get()
         duration = dur,
     }
 end
+
+-- Record graded casts arriving from the engine (in-combat, on-GCD only). The
+-- channel active-time is added separately by CastTracker at CHANNEL_STOP.
+ns.EventBus:Subscribe("CAST_GRADED", function(p)
+    if p.inCombat and not p.isOffGCD then
+        Stats:Record(p.isPerfect, p.comboCount, p.isStart, p.wasteTime, p.activeChunk or 0)
+    end
+end)
