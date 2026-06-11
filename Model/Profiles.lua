@@ -17,7 +17,7 @@ ns.Profiles = Profiles
 -- separately; queue window is a game CVar and is not stored here.)
 local PROFILED_KEYS = {
     "restartTimeout", "isLocked", "maxIcons", "bgAlpha", "uiScale", "useGrid",
-    "animStyle", "animDuration", "statsShown", "statsLocked",
+    "animStyle", "animDuration", "statsShown", "statsLocked", "showTrinkets",
     "point", "x", "y", "statsPoint", "statsX", "statsY",
 }
 

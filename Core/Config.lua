@@ -18,6 +18,7 @@ Config.defaults = {
     animDuration   = 0.25,
     statsShown     = true,
     statsLocked    = true,
+    showTrinkets   = true,
 }
 
 -- Transient grading state, shared by Engine/CastTracker and Engine/GcdAnalyzer.

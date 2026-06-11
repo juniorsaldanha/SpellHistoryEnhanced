@@ -6,9 +6,29 @@ local _, ns = ...
 local GetTime = GetTime
 local GCD_SPELL_ID = ns.Constants.GCD_SPELL_ID
 local GetSpellCooldown = GetSpellCooldown or function(id) return C_Spell.GetSpellCooldown(id) end
+local GetInventoryItemID = GetInventoryItemID
+local GetItemSpell = (C_Item and C_Item.GetItemSpell) or GetItemSpell
+local wipe = wipe
 
 local frame = CreateFrame("Frame", "SpellHistoryEnhancedCastFrame", UIParent)
 ns.CastTracker = { frame = frame }
+
+-- On-use spell IDs of the currently equipped trinkets, refreshed when gear
+-- changes. Trinket effects are not in the spellbook, so the cast filter checks
+-- this set to optionally show trinket use.
+local TRINKET_SLOTS = { 13, 14 }
+local trinketSpells = {}
+local function RefreshTrinketSpells()
+    wipe(trinketSpells)
+    if not GetItemSpell then return end
+    for _, slot in ipairs(TRINKET_SLOTS) do
+        local itemID = GetInventoryItemID("player", slot)
+        if itemID then
+            local _, spellID = GetItemSpell(itemID)
+            if spellID then trinketSpells[spellID] = true end
+        end
+    end
+end
 
 -- Cast start times keyed by cast ID (compared at SUCCEEDED).
 local pendingCasts = {}
@@ -25,9 +45,17 @@ frame:RegisterEvent("UNIT_SPELLCAST_CHANNEL_START")
 frame:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
 frame:RegisterEvent("PLAYER_REGEN_ENABLED")
 frame:RegisterEvent("PLAYER_REGEN_DISABLED")
+frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+frame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
 
 frame:SetScript("OnEvent", function(self, event, unit, castID, spellID)
     local st = ns.Config.state
+
+    -- Keep the equipped-trinket spell set current.
+    if event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_EQUIPMENT_CHANGED" then
+        RefreshTrinketSpells()
+        return
+    end
 
     -- When the player leaves combat.
     if event == "PLAYER_REGEN_ENABLED" then
@@ -92,17 +120,22 @@ frame:SetScript("OnEvent", function(self, event, unit, castID, spellID)
                            or (IsSpellKnownOrOverridesKnown and IsSpellKnownOrOverridesKnown(spellID))
                            or (C_SpellBook and C_SpellBook.IsSpellKnownOrInSpellBook and C_SpellBook.IsSpellKnownOrInSpellBook(spellID))
 
+        -- Trinket on-use effects are not in the spellbook; show them when the
+        -- setting is enabled (default) and the spell matches an equipped trinket.
+        local isTrinket = (ns.Config.db.showTrinkets and trinketSpells[spellID]) and true or false
+
         if ns.debug then
             local info = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(spellID)
             print(ns.Constants.PRINT_PREFIX .. "cast " .. tostring(spellID)
                 .. " |cffffff00" .. (info and info.name or "?") .. "|r"
                 .. " icon=" .. tostring(info and info.iconID)
                 .. " player=" .. tostring(isPlayerSpell and true or false)
+                .. " trinket=" .. tostring(trinketSpells[spellID] and true or false)
                 .. " channel=" .. tostring((castID and channelCasts[castID]) and true or false)
                 .. " ignored=" .. tostring(ns.IgnoreList:IsIgnored(spellID)))
         end
 
-        if not isPlayerSpell or ns.IgnoreList:IsIgnored(spellID) then
+        if (not isPlayerSpell and not isTrinket) or ns.IgnoreList:IsIgnored(spellID) then
             if castID then
                 pendingCasts[castID] = nil
                 channelCasts[castID] = nil
