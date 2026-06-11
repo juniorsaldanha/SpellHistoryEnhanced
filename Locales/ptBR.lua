@@ -1,4 +1,4 @@
--- ptBR.lua - Brazilian Portuguese locale for Spell Combo History.
+-- ptBR.lua - Brazilian Portuguese locale for Spell History Enhanced.
 -- Overrides the English defaults from enUS.lua. Any key omitted here falls
 -- back to the English text. Encoded as UTF-8.
 if GetLocale() ~= "ptBR" then return end
@@ -9,7 +9,7 @@ local L = ns.L
 L["MOVE_HINT"] = "MOVER\nClique direito para travar"
 
 -- Options panel.
-L["OPTIONS_TITLE"] = "Configurações do Spell Combo History"
+L["OPTIONS_TITLE"] = "Configurações do Spell History Enhanced"
 L["RESTART_TIMEOUT"] = "Tempo para reiniciar"
 L["LOCK_POSITION"] = "Travar posição"
 L["USE_GRID_SNAP"] = "Usar grade e encaixe"
@@ -36,7 +36,7 @@ L["MSG_IGNORE_ADDED"] = "%s adicionada à lista de ignoradas."
 L["MSG_IGNORE_REMOVED"] = "%s removida da lista de ignoradas."
 L["MSG_IGNORE_INVALID"] = "Não foi possível encontrar a magia. Insira um ID, nome ou link de magia válido."
 L["STATS_HEADER"] = "Estatísticas"
-L["STATS_PANEL_TITLE"] = "Spell Combo"
+L["STATS_PANEL_TITLE"] = "Spell History"
 L["STATS_UPTIME"] = "Atividade"
 L["STATS_BEST_COMBO"] = "Melhor combo"
 L["STATS_AVG_WASTE"] = "Desperdício méd."
@@ -50,7 +50,7 @@ L["STATS_RESET"] = "Zerar estatísticas"
 L["MSG_STATS_RESET"] = "Estatísticas zeradas."
 L["PROFILE_NOTE"] = "As configurações são salvas separadamente para cada especialização."
 
--- Chat messages (printed after the "[SpellCombo]" prefix).
+-- Chat messages (printed after the "[SpellHistory]" prefix).
 L["MSG_POSITION_LOCKED"] = "Posição travada com o clique direito."
 L["MSG_CURRENT_QUEUE"] = "SpellQueueWindow atual:"
 L["MSG_HISTORY_CLEARED"] = "O histórico foi limpo."

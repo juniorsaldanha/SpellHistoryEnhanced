@@ -1,4 +1,4 @@
-# Spell Combo History
+# Spell History Enhanced
 
 A World of Warcraft addon that shows your recent spell casts and grades how
 well you chained them together. Every time you cast, the addon measures the
@@ -23,7 +23,7 @@ handy for practicing tight rotations and minimizing GCD downtime.
   settings by spell ID, name, or link.
 - **Stats panel** — an optional on-screen readout of the current fight: GCD
   uptime, PERFECT count and rate, best combo, average wasted time, casts, and
-  session length. Also available via `/sch`.
+  session length. Also available via `/she`.
 - **Per-spec profiles** — every setting (position, size, animations, ignore
   list, stats panel, ...) is saved separately for each specialization and
   switches automatically when you change spec.
@@ -44,9 +44,9 @@ handy for practicing tight rotations and minimizing GCD downtime.
 
 1. Download or clone this repository.
 2. Copy the folder into your WoW AddOns directory, e.g.
-   `World of Warcraft/_retail_/Interface/AddOns/SpellComboHistory`.
-3. Make sure the folder is named `SpellComboHistory` and contains
-   `SpellComboHistory.toc` at its root.
+   `World of Warcraft/_retail_/Interface/AddOns/SpellHistoryEnhanced`.
+3. Make sure the folder is named `SpellHistoryEnhanced` and contains
+   `SpellHistoryEnhanced.toc` at its root.
 4. Restart WoW (or `/reload`) and enable the addon at the character select
    screen.
 
@@ -58,7 +58,7 @@ handy for practicing tight rotations and minimizing GCD downtime.
 - While unlocked, **drag** the bar to reposition it and **right-click** it to
   lock again.
 - Open the settings via the game's **AddOns options panel**
-  (`Esc → Options → AddOns → SpellComboHistory`).
+  (`Esc → Options → AddOns → SpellHistoryEnhanced`).
 
 ### Settings
 
@@ -85,8 +85,8 @@ and reset the bar position to center.
 
 ## Slash commands
 
-- `/sch` (or `/spellcombo`) — print the current/last fight's statistics.
-- `/sch reset` — reset the statistics.
+- `/she` (or `/spellhistory`) — print the current/last fight's statistics.
+- `/she reset` — reset the statistics.
 
 ## Planned Features
 

@@ -1,14 +1,14 @@
-# Contributing to Spell Combo History
+# Contributing to Spell History Enhanced
 
-Thanks for your interest in improving Spell Combo History! This guide covers
+Thanks for your interest in improving Spell History Enhanced! This guide covers
 how to set up for development, the conventions the project follows, and how to
 add a translation.
 
 ## Project Layout
 
 ```
-SpellComboHistory.toc     # addon manifest; declares load order
-SpellComboHistory.lua     # events, GCD/combo analysis, settings panel, wiring
+SpellHistoryEnhanced.toc     # addon manifest; declares load order
+SpellHistoryEnhanced.lua     # events, GCD/combo analysis, settings panel, wiring
 Animations.lua            # tween engine + pluggable animation strategies
 IgnoreList.lua            # the set of spells excluded from tracking
 Stats.lua                 # per-combat statistics model
@@ -28,9 +28,9 @@ table exists), then the modules (`Animations.lua`, `IgnoreList.lua`,
 `Stats.lua`, `StatsPanel.lua`, `Profiles.lua`, `HistoryBar.lua`, which expose
 `ns.Tween`, `ns.Animations`, `ns.IgnoreList`, `ns.Stats`, `ns.StatsPanel`,
 `ns.Profiles`, and `ns.HistoryBar` on the addon's private namespace), and
-finally `SpellComboHistory.lua`, which wires everything together.
+finally `SpellHistoryEnhanced.lua`, which wires everything together.
 
-Settings live as flat keys on `SpellComboHistoryDB` (the "working set" every
+Settings live as flat keys on `SpellHistoryEnhancedDB` (the "working set" every
 module reads). `Profiles.lua` stores a copy of those keys per specialization
 under `db.profiles[specID]` and swaps the working set on spec change. If you add
 a new saved setting that should be per-spec, add its key to `PROFILED_KEYS` in
@@ -59,8 +59,8 @@ onComplete)` to animate the icon's `state` fields (`x`, `y`, `alpha`, `scale`).
 
 1. Clone the repository.
 2. Symlink or copy the project folder into your WoW AddOns directory as
-   `SpellComboHistory`:
-   `World of Warcraft/_retail_/Interface/AddOns/SpellComboHistory`.
+   `SpellHistoryEnhanced`:
+   `World of Warcraft/_retail_/Interface/AddOns/SpellHistoryEnhanced`.
    A symlink lets you edit in place and just `/reload` to test.
 3. In game, type `/reload` after each change to pick it up.
 4. Use `/console scriptErrors 1` (or an error-display addon like BugSack) to
@@ -70,7 +70,7 @@ If you have a Lua toolchain installed, you can syntax-check files before
 loading them in game:
 
 ```sh
-luac -p SpellComboHistory.lua
+luac -p SpellHistoryEnhanced.lua
 luac -p Locales/enUS.lua
 ```
 
@@ -82,7 +82,7 @@ luac -p Locales/enUS.lua
   match the density of the surrounding code.
 - **No new globals.** Use the addon's private namespace (`local _, ns = ...`)
   and locals. The few intentional globals (frame names, `UpdateDummyFrames`)
-  are pre-existing and named with the `SpellComboHistory` prefix.
+  are pre-existing and named with the `SpellHistoryEnhanced` prefix.
 - **All user-facing text goes through the locale table.** Never hardcode a
   displayed string; add a key to `Locales/enUS.lua` and reference it via
   `L["KEY"]`. This includes chat messages, button/label text, and any words
@@ -108,13 +108,13 @@ The addon uses a simple per-language Lua table — no localization library.
    -- ...override only what you translate
    ```
 
-3. Add the file to `SpellComboHistory.toc`, **after** `Locales\enUS.lua` so it
+3. Add the file to `SpellHistoryEnhanced.toc`, **after** `Locales\enUS.lua` so it
    overrides the English defaults:
 
    ```
    Locales\enUS.lua
    Locales\koKR.lua
-   SpellComboHistory.lua
+   SpellHistoryEnhanced.lua
    ```
 
 4. `/reload` in a client set to that locale and verify the strings.

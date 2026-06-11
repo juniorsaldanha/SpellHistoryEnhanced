@@ -103,7 +103,7 @@ function HistoryBar:CreateIcon()
         if button == "RightButton" and self.spellID and ns.IgnoreList then
             if ns.IgnoreList:Add(self.spellID) then
                 local name = ns.IgnoreList.GetSpellNameIcon(self.spellID)
-                print("|cff00ccff[SpellCombo] |r" .. format(L["MSG_IGNORE_ADDED"], name or self.spellID))
+                print("|cff00ccff[SpellHistory] |r" .. format(L["MSG_IGNORE_ADDED"], name or self.spellID))
             end
         end
     end)

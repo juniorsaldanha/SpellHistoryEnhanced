@@ -1,11 +1,11 @@
-# Spell Combo History — Cleanup & GitHub-Ready Design
+# Spell History Enhanced — Cleanup & GitHub-Ready Design
 
 **Date:** 2026-06-10
 **Status:** Approved (pending spec review)
 
 ## Goal
 
-Prepare the existing **Spell Combo History** WoW addon for open-source
+Prepare the existing **Spell History Enhanced** WoW addon for open-source
 publication on GitHub. The addon tracks the player's spell cast history and
 grades global-cooldown usage ("PERFECT" when no time is wasted between
 globals), with combo streaks. No gameplay behavior changes — this is a
@@ -26,8 +26,8 @@ cleanup, localization, and documentation pass.
 ## Repo Structure
 
 ```
-SpellComboHistory.toc          # English Notes, Version, X-License; loads Locales first
-SpellComboHistory.lua          # cleaned: English comments, strings via L[]
+SpellHistoryEnhanced.toc          # English Notes, Version, X-License; loads Locales first
+SpellHistoryEnhanced.lua          # cleaned: English comments, strings via L[]
 Locales/
   enUS.lua                     # L table with every user-facing string
 README.md
@@ -37,7 +37,7 @@ LICENSE                        # MIT
 ```
 
 `Locales/` is a subfolder, but this is still the conventional flat addon
-layout. The `.toc` loads `Locales\enUS.lua` **before** `SpellComboHistory.lua`.
+layout. The `.toc` loads `Locales\enUS.lua` **before** `SpellHistoryEnhanced.lua`.
 
 ## Localization Mechanism
 
@@ -55,7 +55,7 @@ L["LOCK_POSITION"] = "Lock Position"
 ```
 
 ```lua
--- SpellComboHistory.lua (top of file)
+-- SpellHistoryEnhanced.lua (top of file)
 local addonName, ns = ...
 local L = ns.L
 ```
@@ -100,8 +100,8 @@ portion is what moves into `L`.
 - `## Notes` rewritten in English.
 - Add `## Version`.
 - Add `## X-License: MIT`.
-- Add the `Locales\enUS.lua` load line **before** `SpellComboHistory.lua`.
-- `## SavedVariables: SpellComboHistoryDB` unchanged.
+- Add the `Locales\enUS.lua` load line **before** `SpellHistoryEnhanced.lua`.
+- `## SavedVariables: SpellHistoryEnhancedDB` unchanged.
 - `## Interface` lines unchanged.
 
 No logic, no SavedVariables schema, and no UI behavior changes.

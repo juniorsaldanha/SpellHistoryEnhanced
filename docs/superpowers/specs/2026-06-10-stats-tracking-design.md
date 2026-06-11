@@ -1,4 +1,4 @@
-# Spell Combo History — Stats & Session Tracking Design
+# Spell History Enhanced — Stats & Session Tracking Design
 
 **Date:** 2026-06-10
 **Status:** Implemented
@@ -11,7 +11,7 @@ and session (fight) length.
 
 ## Decisions
 
-- **Surfacing:** an on-screen movable/lockable panel, **plus** a `/sch` slash
+- **Surfacing:** an on-screen movable/lockable panel, **plus** a `/she` slash
   command, **plus** a summary in the settings panel. (All three.)
 - **Session = one combat** (per-combat reset): stats reset when a fight starts
   and the panel keeps showing the last fight's numbers until the next begins.
@@ -45,13 +45,13 @@ A thin view over `ns.Stats`.
 - Refreshes its rows on a throttled `OnUpdate` (0.2s) — which only fires while
   shown, so it costs nothing when hidden.
 
-### `SpellComboHistory.lua` (wiring)
+### `SpellHistoryEnhanced.lua` (wiring)
 - `PLAYER_REGEN_DISABLED` → `Stats:BeginCombat`; `PLAYER_REGEN_ENABLED` →
   `Stats:EndCombat`.
 - In `ProcessFrameSpells`, after grading, records in-combat on-GCD casts.
 - `Stats:Init()` + `StatsPanel:Init(db)` in `ADDON_LOADED`.
 - Settings: Show/Lock checkboxes, a static summary with Refresh + Reset.
-- Slash: `/sch` (and `/spellcombo`) prints stats; `/sch reset` clears them.
+- Slash: `/she` (and `/spellhistory`) prints stats; `/she reset` clears them.
 
 ## SOLID Notes
 - Model (`Stats`) and view (`StatsPanel`) are separate; the model has no UI
@@ -66,7 +66,7 @@ in-memory (per fight), not persisted.
 ## Localization
 15 new keys in `enUS.lua` and `ptBR.lua` (panel title, row labels, hint,
 settings labels, and the reset message). `STATS_PANEL_TITLE` is kept as the
-brand string "Spell Combo".
+brand string "Spell History".
 
 ## Out of Scope
 The last roadmap item: per-spec profiles.

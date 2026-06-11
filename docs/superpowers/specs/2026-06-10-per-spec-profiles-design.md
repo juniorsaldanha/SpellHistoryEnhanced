@@ -1,4 +1,4 @@
-# Spell Combo History — Per-Spec Profiles Design
+# Spell History Enhanced — Per-Spec Profiles Design
 
 **Date:** 2026-06-10
 **Status:** Implemented
@@ -11,7 +11,7 @@ player changes spec.
 
 ## Key constraint
 
-Every module already reads its settings as flat keys on `SpellComboHistoryDB`
+Every module already reads its settings as flat keys on `SpellHistoryEnhancedDB`
 (the "working set"). Rewriting all those read sites to go through a profile
 object would be large and risky. So the design keeps the flat working set and
 adds a manager that swaps its values per spec — no read sites change.
@@ -35,7 +35,7 @@ animStyle, animDuration, statsShown, statsLocked, bar position (point/x/y),
 stats position (statsPoint/statsX/statsY). `ignoreList` is copied separately.
 The spell queue window is a game CVar and is intentionally not profiled.
 
-### Wiring (`SpellComboHistory.lua`)
+### Wiring (`SpellHistoryEnhanced.lua`)
 - `ADDON_LOADED`: set defaults, init modules, `Profiles:Init`, build options,
   `ApplyAllSettings()`.
 - `PLAYER_LOGIN` and `PLAYER_SPECIALIZATION_CHANGED`: `Profiles:Activate(nil,
@@ -61,7 +61,7 @@ the current spec's profile from those settings, so nothing is lost.
 
 ## SavedVariables
 
-`SpellComboHistoryDB.profiles[specID]` holds each spec's settings. The flat keys
+`SpellHistoryEnhancedDB.profiles[specID]` holds each spec's settings. The flat keys
 remain as the live working set (equal to the active spec's profile).
 
 ## Localization

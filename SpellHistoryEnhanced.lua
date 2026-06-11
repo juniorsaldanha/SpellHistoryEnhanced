@@ -1,4 +1,4 @@
--- [[ SpellComboHistory - Logic Flow ]]
+-- [[ SpellHistoryEnhanced - Logic Flow ]]
 --
 --  1. Event handling (OnEvent)
 --     - UNIT_SPELLCAST_START: record the cast's start time (pendingCasts)
@@ -31,7 +31,7 @@
 --       background (UpdateMainBackground) and guides (UpdateDummyFrames) live
 -- -----------------------------------------------------------------------------------------------------------------------
 
--- [SpellComboHistory] addon entry point.
+-- [SpellHistoryEnhanced] addon entry point.
 -- Addon-private namespace and localized string table.
 local addonName, ns = ...
 local L = ns.L
@@ -74,7 +74,7 @@ local function fmtDuration(sec)
 end
 
 -- Create the main frame that receives events.
-local frame = CreateFrame("Frame", "SpellComboHistoryFrame", UIParent)
+local frame = CreateFrame("Frame", "SpellHistoryEnhancedFrame", UIParent)
 -- Register the spell-cast-succeeded event.
 frame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 -- Register channel start/stop events.
@@ -97,7 +97,7 @@ local ICON_SIZE = 40
 local SPACING = 10
 
 -- Movable handle frame used to reposition the icon block.
-local anchor = CreateFrame("Frame", "SpellComboHistoryAnchor", UIParent)
+local anchor = CreateFrame("Frame", "SpellHistoryEnhancedAnchor", UIParent)
 -- Match the handle size to the default icon size.
 anchor:SetSize(ICON_SIZE, ICON_SIZE)
 -- Default to screen center.
@@ -156,7 +156,7 @@ local function CreateGrid()
 end
 
 local function ToggleGrid(show)
-    if show and SpellComboHistoryDB.useGrid then
+    if show and SpellHistoryEnhancedDB.useGrid then
         CreateGrid()
         gridFrame:Show()
     elseif gridFrame then
@@ -193,7 +193,7 @@ anchor:SetScript("OnDragStart", function(self)
         local newBottom = ny - dragOffsetY
 
         -- Current max icon count.
-        local maxIcons = (SpellComboHistoryDB and SpellComboHistoryDB.maxIcons) or 6
+        local maxIcons = (SpellHistoryEnhancedDB and SpellHistoryEnhancedDB.maxIcons) or 6
         -- Current UI scale.
         local currentScale = self:GetScale()
         -- Visual size of icon 1 (the anchor).
@@ -221,7 +221,7 @@ anchor:SetScript("OnDragStart", function(self)
         local finalBottom = blockCenterY - visualIconSize / 2
 
         -- Grid snap (align to 10px steps when enabled).
-        if SpellComboHistoryDB.useGrid then
+        if SpellHistoryEnhancedDB.useGrid then
             finalLeft = math.floor(finalLeft / 10 + 0.5) * 10
             finalBottom = math.floor(finalBottom / 10 + 0.5) * 10
         end
@@ -240,27 +240,27 @@ anchor:SetScript("OnDragStop", function(self)
     -- Read the frame's final position.
     local point, relativeTo, relativePoint, xOfs, yOfs = self:GetPoint()
     -- Save the anchor point.
-    SpellComboHistoryDB.point = point
+    SpellHistoryEnhancedDB.point = point
     -- Save the X offset.
-    SpellComboHistoryDB.x = xOfs
+    SpellHistoryEnhancedDB.x = xOfs
     -- Save the Y offset.
-    SpellComboHistoryDB.y = yOfs
+    SpellHistoryEnhancedDB.y = yOfs
 end)
 
 -- Right-click to lock the position immediately.
 anchor:SetScript("OnMouseDown", function(self, button)
     if button == "RightButton" then
         -- Enable the position lock.
-        SpellComboHistoryDB.isLocked = true
+        SpellHistoryEnhancedDB.isLocked = true
         -- Disable mouse interaction.
         self:EnableMouse(false)
         -- Hide the guide frames and grid.
         UpdateDummyFrames(false)
         -- Sync the settings checkbox state.
-        if _G["SpellComboHistoryLockCheck"] then
-            _G["SpellComboHistoryLockCheck"]:SetChecked(true)
+        if _G["SpellHistoryEnhancedLockCheck"] then
+            _G["SpellHistoryEnhancedLockCheck"]:SetChecked(true)
         end
-        print("|cff00ccff[SpellCombo] |r" .. L["MSG_POSITION_LOCKED"])
+        print("|cff00ccff[SpellHistory] |r" .. L["MSG_POSITION_LOCKED"])
     end
 end)
 
@@ -287,7 +287,7 @@ anchor.mainBg:SetColorTexture(0, 0, 0, 0.5)
 -- Refresh the background bar's size and transparency from settings.
 local function UpdateMainBackground()
     -- Current max icon count.
-    local maxIcons = (SpellComboHistoryDB and SpellComboHistoryDB.maxIcons) or 6
+    local maxIcons = (SpellHistoryEnhancedDB and SpellHistoryEnhancedDB.maxIcons) or 6
     -- Total width occupied by the icons.
     local blockWidth = ICON_SIZE + (maxIcons - 1) * (ICON_SIZE + SPACING)
 
@@ -299,7 +299,7 @@ local function UpdateMainBackground()
     anchor.mainBg:SetPoint("BOTTOMLEFT", anchor, "BOTTOMLEFT", -(blockWidth - ICON_SIZE) - 5, -5)
 
     -- Read the configured background transparency.
-    local alpha = (SpellComboHistoryDB and SpellComboHistoryDB.bgAlpha)
+    local alpha = (SpellHistoryEnhancedDB and SpellHistoryEnhancedDB.bgAlpha)
     -- Default to 0.5 when unset.
     if alpha == nil then alpha = 0.5 end
     -- Apply the final transparency.
@@ -326,7 +326,7 @@ function UpdateDummyFrames(show)
     ToggleGrid(true)
 
     -- Current max icon count.
-    local maxIcons = (SpellComboHistoryDB and SpellComboHistoryDB.maxIcons) or 6
+    local maxIcons = (SpellHistoryEnhancedDB and SpellHistoryEnhancedDB.maxIcons) or 6
     -- Total width.
     local blockWidth = ICON_SIZE + (maxIcons - 1) * (ICON_SIZE + SPACING)
     -- Center the text over the whole icon block.
@@ -348,8 +348,8 @@ local refreshOptionsPanel
 
 -- Build the addon's settings panel.
 local function InitializeOptions()
-    local panel = CreateFrame("Frame", "SpellComboHistoryOptionsPanel")
-    panel.name = "SpellComboHistory"
+    local panel = CreateFrame("Frame", "SpellHistoryEnhancedOptionsPanel")
+    panel.name = "SpellHistoryEnhanced"
 
     -- [1] Scroll frame.
     local scrollFrame = CreateFrame("ScrollFrame", nil, panel, "UIPanelScrollFrameTemplate")
@@ -372,105 +372,105 @@ local function InitializeOptions()
     profileNote:SetText(L["PROFILE_NOTE"])
 
     -- Restart timeout slider.
-    local slider = CreateFrame("Slider", "SpellComboHistoryRestartSlider", content, "OptionsSliderTemplate")
+    local slider = CreateFrame("Slider", "SpellHistoryEnhancedRestartSlider", content, "OptionsSliderTemplate")
     slider:SetPoint("TOP", 0, -80)
     slider:SetMinMaxValues(1, 60)
     slider:SetValueStep(1)
     slider:SetObeyStepOnDrag(true)
-    slider:SetValue(SpellComboHistoryDB.restartTimeout)
+    slider:SetValue(SpellHistoryEnhancedDB.restartTimeout)
     _G[slider:GetName() .. "Low"]:SetText("1s")
     _G[slider:GetName() .. "High"]:SetText("60s")
-    _G[slider:GetName() .. "Text"]:SetText(L["RESTART_TIMEOUT"] .. ": " .. SpellComboHistoryDB.restartTimeout .. "s")
+    _G[slider:GetName() .. "Text"]:SetText(L["RESTART_TIMEOUT"] .. ": " .. SpellHistoryEnhancedDB.restartTimeout .. "s")
     slider:SetScript("OnValueChanged", function(self, value)
         value = math.floor(value)
-        SpellComboHistoryDB.restartTimeout = value
+        SpellHistoryEnhancedDB.restartTimeout = value
         _G[self:GetName() .. "Text"]:SetText(L["RESTART_TIMEOUT"] .. ": " .. value .. "s")
     end)
 
     -- Lock position checkbox.
-    local lockCheck = CreateFrame("CheckButton", "SpellComboHistoryLockCheck", content, "ChatConfigCheckButtonTemplate")
+    local lockCheck = CreateFrame("CheckButton", "SpellHistoryEnhancedLockCheck", content, "ChatConfigCheckButtonTemplate")
     lockCheck:SetPoint("TOP", -80, -130)
     _G[lockCheck:GetName() .. "Text"]:SetText(L["LOCK_POSITION"])
-    lockCheck:SetChecked(SpellComboHistoryDB.isLocked)
+    lockCheck:SetChecked(SpellHistoryEnhancedDB.isLocked)
     lockCheck:SetScript("OnClick", function(self)
         local isLocked = self:GetChecked()
-        SpellComboHistoryDB.isLocked = isLocked
+        SpellHistoryEnhancedDB.isLocked = isLocked
         anchor:EnableMouse(not isLocked)
         UpdateDummyFrames(not isLocked)
     end)
 
     -- Grid mode checkbox.
-    local gridCheck = CreateFrame("CheckButton", "SpellComboHistoryGridCheck", content, "ChatConfigCheckButtonTemplate")
+    local gridCheck = CreateFrame("CheckButton", "SpellHistoryEnhancedGridCheck", content, "ChatConfigCheckButtonTemplate")
     gridCheck:SetPoint("TOP", -80, -165)
     _G[gridCheck:GetName() .. "Text"]:SetText(L["USE_GRID_SNAP"])
-    gridCheck:SetChecked(SpellComboHistoryDB.useGrid)
+    gridCheck:SetChecked(SpellHistoryEnhancedDB.useGrid)
     gridCheck:SetScript("OnClick", function(self)
         local useGrid = self:GetChecked()
-        SpellComboHistoryDB.useGrid = useGrid
-        if not SpellComboHistoryDB.isLocked then
+        SpellHistoryEnhancedDB.useGrid = useGrid
+        if not SpellHistoryEnhancedDB.isLocked then
             ToggleGrid(useGrid)
         end
     end)
 
     -- Max icons slider.
-    local maxIconsSlider = CreateFrame("Slider", "SpellComboHistoryMaxIconsSlider", content, "OptionsSliderTemplate")
+    local maxIconsSlider = CreateFrame("Slider", "SpellHistoryEnhancedMaxIconsSlider", content, "OptionsSliderTemplate")
     maxIconsSlider:SetPoint("TOP", 0, -220)
     maxIconsSlider:SetMinMaxValues(4, 12)
     maxIconsSlider:SetValueStep(1)
     maxIconsSlider:SetObeyStepOnDrag(true)
-    maxIconsSlider:SetValue(SpellComboHistoryDB.maxIcons)
+    maxIconsSlider:SetValue(SpellHistoryEnhancedDB.maxIcons)
     _G[maxIconsSlider:GetName() .. "Low"]:SetText("4")
     _G[maxIconsSlider:GetName() .. "High"]:SetText("12")
-    _G[maxIconsSlider:GetName() .. "Text"]:SetText(L["MAX_ICONS"] .. ": " .. SpellComboHistoryDB.maxIcons)
+    _G[maxIconsSlider:GetName() .. "Text"]:SetText(L["MAX_ICONS"] .. ": " .. SpellHistoryEnhancedDB.maxIcons)
     maxIconsSlider:SetScript("OnValueChanged", function(self, value)
         value = math.floor(value)
-        SpellComboHistoryDB.maxIcons = value
+        SpellHistoryEnhancedDB.maxIcons = value
         _G[self:GetName() .. "Text"]:SetText(L["MAX_ICONS"] .. ": " .. value)
         ns.HistoryBar:Relayout()
-        if not SpellComboHistoryDB.isLocked then
+        if not SpellHistoryEnhancedDB.isLocked then
             UpdateDummyFrames(true)
         end
         UpdateMainBackground()
     end)
 
     -- Background transparency slider.
-    local bgAlphaSlider = CreateFrame("Slider", "SpellComboHistoryBgAlphaSlider", content, "OptionsSliderTemplate")
+    local bgAlphaSlider = CreateFrame("Slider", "SpellHistoryEnhancedBgAlphaSlider", content, "OptionsSliderTemplate")
     bgAlphaSlider:SetPoint("TOP", 0, -290)
     bgAlphaSlider:SetMinMaxValues(0, 1)
     bgAlphaSlider:SetValueStep(0.05)
     bgAlphaSlider:SetObeyStepOnDrag(true)
-    bgAlphaSlider:SetValue(SpellComboHistoryDB.bgAlpha or 0.5)
+    bgAlphaSlider:SetValue(SpellHistoryEnhancedDB.bgAlpha or 0.5)
     _G[bgAlphaSlider:GetName() .. "Low"]:SetText("0%")
     _G[bgAlphaSlider:GetName() .. "High"]:SetText("100%")
-    local alphaPercent = math.floor((SpellComboHistoryDB.bgAlpha or 0.5) * 100)
+    local alphaPercent = math.floor((SpellHistoryEnhancedDB.bgAlpha or 0.5) * 100)
     _G[bgAlphaSlider:GetName() .. "Text"]:SetText(L["BG_TRANSPARENCY"] .. ": " .. alphaPercent .. "%")
     bgAlphaSlider:SetScript("OnValueChanged", function(self, value)
-        SpellComboHistoryDB.bgAlpha = value
+        SpellHistoryEnhancedDB.bgAlpha = value
         local percent = math.floor(value * 100)
         _G[self:GetName() .. "Text"]:SetText(L["BG_TRANSPARENCY"] .. ": " .. percent .. "%")
         UpdateMainBackground()
     end)
 
     -- UI scale slider (keeps aspect ratio).
-    local uiScaleSlider = CreateFrame("Slider", "SpellComboHistoryUiScaleSlider", content, "OptionsSliderTemplate")
+    local uiScaleSlider = CreateFrame("Slider", "SpellHistoryEnhancedUiScaleSlider", content, "OptionsSliderTemplate")
     uiScaleSlider:SetPoint("TOP", 0, -360)
     uiScaleSlider:SetMinMaxValues(0.5, 2.0)
     uiScaleSlider:SetValueStep(0.05)
     uiScaleSlider:SetObeyStepOnDrag(true)
-    uiScaleSlider:SetValue(SpellComboHistoryDB.uiScale or 1.0)
+    uiScaleSlider:SetValue(SpellHistoryEnhancedDB.uiScale or 1.0)
     _G[uiScaleSlider:GetName() .. "Low"]:SetText("50%")
     _G[uiScaleSlider:GetName() .. "High"]:SetText("200%")
-    local scalePercent = math.floor((SpellComboHistoryDB.uiScale or 1.0) * 100)
+    local scalePercent = math.floor((SpellHistoryEnhancedDB.uiScale or 1.0) * 100)
     _G[uiScaleSlider:GetName() .. "Text"]:SetText(L["UI_SCALE"] .. ": " .. scalePercent .. "%")
     uiScaleSlider:SetScript("OnValueChanged", function(self, value)
-        SpellComboHistoryDB.uiScale = value
+        SpellHistoryEnhancedDB.uiScale = value
         local percent = math.floor(value * 100)
         _G[self:GetName() .. "Text"]:SetText(L["UI_SCALE"] .. ": " .. percent .. "%")
         anchor:SetScale(value)
     end)
 
     -- Spell queue window slider.
-    local queueSlider = CreateFrame("Slider", "SpellComboHistoryQueueSlider", content, "OptionsSliderTemplate")
+    local queueSlider = CreateFrame("Slider", "SpellHistoryEnhancedQueueSlider", content, "OptionsSliderTemplate")
     queueSlider:SetPoint("TOP", 0, -450)
     queueSlider:SetMinMaxValues(0, 400)
     queueSlider:SetValueStep(10)
@@ -499,7 +499,7 @@ local function InitializeOptions()
     checkButton:SetText(L["CHECK_CURRENT"])
     checkButton:SetScript("OnClick", function()
         local val = GetCVar("SpellQueueWindow")
-        print("|cff00ccff[SpellCombo] |r" .. L["MSG_CURRENT_QUEUE"] .. " |cffffffff" .. val .. "ms")
+        print("|cff00ccff[SpellHistory] |r" .. L["MSG_CURRENT_QUEUE"] .. " |cffffffff" .. val .. "ms")
     end)
     -- Button to clear the history.
     local clearButton = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
@@ -509,7 +509,7 @@ local function InitializeOptions()
     clearButton:SetScript("OnClick", function()
         ns.HistoryBar:Clear()
         perfectCombo = 0
-        print("|cff00ccff[SpellCombo] |r" .. L["MSG_HISTORY_CLEARED"])
+        print("|cff00ccff[SpellHistory] |r" .. L["MSG_HISTORY_CLEARED"])
     end)
 
     -- Button to reset the position.
@@ -524,11 +524,11 @@ local function InitializeOptions()
 
         -- Save the current position.
         local point, _, _, x, y = anchor:GetPoint()
-        SpellComboHistoryDB.point = point
-        SpellComboHistoryDB.x = x
-        SpellComboHistoryDB.y = y
+        SpellHistoryEnhancedDB.point = point
+        SpellHistoryEnhancedDB.x = x
+        SpellHistoryEnhancedDB.y = y
 
-        print("|cff00ccff[SpellCombo] |r" .. L["MSG_POSITION_RESET"])
+        print("|cff00ccff[SpellHistory] |r" .. L["MSG_POSITION_RESET"])
     end)
 
     -- Animation style cycle button (None -> Fade -> Slide -> Bounce -> ...).
@@ -536,7 +536,7 @@ local function InitializeOptions()
     animButton:SetSize(220, 30)
     animButton:SetPoint("TOP", resetPosButton, "BOTTOM", 0, -30)
     local function animLabel()
-        return L["ANIM_STYLE"] .. ": " .. L[ns.Animations:Get(SpellComboHistoryDB.animStyle).labelKey]
+        return L["ANIM_STYLE"] .. ": " .. L[ns.Animations:Get(SpellHistoryEnhancedDB.animStyle).labelKey]
     end
     animButton:SetText(animLabel())
     animButton:SetScript("OnClick", function(self)
@@ -544,25 +544,25 @@ local function InitializeOptions()
         -- Find the current style's position, then advance to the next one.
         local idx = 1
         for i, strat in ipairs(list) do
-            if strat.key == SpellComboHistoryDB.animStyle then idx = i break end
+            if strat.key == SpellHistoryEnhancedDB.animStyle then idx = i break end
         end
-        SpellComboHistoryDB.animStyle = list[(idx % #list) + 1].key
+        SpellHistoryEnhancedDB.animStyle = list[(idx % #list) + 1].key
         self:SetText(animLabel())
     end)
 
     -- Animation speed (duration) slider.
-    local animSpeedSlider = CreateFrame("Slider", "SpellComboHistoryAnimSpeedSlider", content, "OptionsSliderTemplate")
+    local animSpeedSlider = CreateFrame("Slider", "SpellHistoryEnhancedAnimSpeedSlider", content, "OptionsSliderTemplate")
     animSpeedSlider:SetPoint("TOP", animButton, "BOTTOM", 0, -40)
     animSpeedSlider:SetMinMaxValues(0.1, 0.6)
     animSpeedSlider:SetValueStep(0.05)
     animSpeedSlider:SetObeyStepOnDrag(true)
-    animSpeedSlider:SetValue(SpellComboHistoryDB.animDuration or 0.25)
+    animSpeedSlider:SetValue(SpellHistoryEnhancedDB.animDuration or 0.25)
     _G[animSpeedSlider:GetName() .. "Low"]:SetText("0.1s")
     _G[animSpeedSlider:GetName() .. "High"]:SetText("0.6s")
-    _G[animSpeedSlider:GetName() .. "Text"]:SetText(L["ANIM_SPEED"] .. ": " .. string.format("%.2fs", SpellComboHistoryDB.animDuration or 0.25))
+    _G[animSpeedSlider:GetName() .. "Text"]:SetText(L["ANIM_SPEED"] .. ": " .. string.format("%.2fs", SpellHistoryEnhancedDB.animDuration or 0.25))
     animSpeedSlider:SetScript("OnValueChanged", function(self, value)
         value = math.floor(value * 20 + 0.5) / 20
-        SpellComboHistoryDB.animDuration = value
+        SpellHistoryEnhancedDB.animDuration = value
         _G[self:GetName() .. "Text"]:SetText(L["ANIM_SPEED"] .. ": " .. string.format("%.2fs", value))
     end)
 
@@ -573,21 +573,21 @@ local function InitializeOptions()
     statsHeader:SetText(L["STATS_HEADER"])
 
     -- Show / lock the on-screen stats panel.
-    local showStatsCheck = CreateFrame("CheckButton", "SpellComboHistoryShowStatsCheck", content, "ChatConfigCheckButtonTemplate")
+    local showStatsCheck = CreateFrame("CheckButton", "SpellHistoryEnhancedShowStatsCheck", content, "ChatConfigCheckButtonTemplate")
     showStatsCheck:SetPoint("TOP", statsHeader, "BOTTOM", -80, -12)
     _G[showStatsCheck:GetName() .. "Text"]:SetText(L["SHOW_STATS"])
-    showStatsCheck:SetChecked(SpellComboHistoryDB.statsShown)
+    showStatsCheck:SetChecked(SpellHistoryEnhancedDB.statsShown)
     showStatsCheck:SetScript("OnClick", function(self)
-        SpellComboHistoryDB.statsShown = self:GetChecked() and true or false
+        SpellHistoryEnhancedDB.statsShown = self:GetChecked() and true or false
         ns.StatsPanel:ApplyShown()
     end)
 
-    local lockStatsCheck = CreateFrame("CheckButton", "SpellComboHistoryLockStatsCheck", content, "ChatConfigCheckButtonTemplate")
+    local lockStatsCheck = CreateFrame("CheckButton", "SpellHistoryEnhancedLockStatsCheck", content, "ChatConfigCheckButtonTemplate")
     lockStatsCheck:SetPoint("TOP", showStatsCheck, "BOTTOM", 0, -4)
     _G[lockStatsCheck:GetName() .. "Text"]:SetText(L["LOCK_STATS"])
-    lockStatsCheck:SetChecked(SpellComboHistoryDB.statsLocked)
+    lockStatsCheck:SetChecked(SpellHistoryEnhancedDB.statsLocked)
     lockStatsCheck:SetScript("OnClick", function(self)
-        SpellComboHistoryDB.statsLocked = self:GetChecked() and true or false
+        SpellHistoryEnhancedDB.statsLocked = self:GetChecked() and true or false
         ns.StatsPanel:ApplyLock()
     end)
 
@@ -622,7 +622,7 @@ local function InitializeOptions()
     statsResetButton:SetScript("OnClick", function()
         ns.Stats:Reset()
         updateStatsSummary()
-        print("|cff00ccff[SpellCombo] |r" .. L["MSG_STATS_RESET"])
+        print("|cff00ccff[SpellHistory] |r" .. L["MSG_STATS_RESET"])
     end)
 
     -- ===== Ignore list =====
@@ -639,7 +639,7 @@ local function InitializeOptions()
     ignoreHint:SetText(L["IGNORE_HINT"])
 
     -- Add box: accepts a spell ID, name, or dragged spell link.
-    local addBox = CreateFrame("EditBox", "SpellComboHistoryIgnoreAddBox", content, "InputBoxTemplate")
+    local addBox = CreateFrame("EditBox", "SpellHistoryEnhancedIgnoreAddBox", content, "InputBoxTemplate")
     addBox:SetSize(180, 24)
     addBox:SetPoint("TOP", ignoreHint, "BOTTOM", -50, -14)
     addBox:SetAutoFocus(false)
@@ -670,12 +670,12 @@ local function InitializeOptions()
         if id and ns.IgnoreList.SpellExists(id) then
             if ns.IgnoreList:Add(id) then
                 local name = ns.IgnoreList.GetSpellNameIcon(id)
-                print("|cff00ccff[SpellCombo] |r" .. string.format(L["MSG_IGNORE_ADDED"], name or id))
+                print("|cff00ccff[SpellHistory] |r" .. string.format(L["MSG_IGNORE_ADDED"], name or id))
             end
             addBox:SetText("")
             addBox:ClearFocus()
         else
-            print("|cff00ccff[SpellCombo] |r" .. L["MSG_IGNORE_INVALID"])
+            print("|cff00ccff[SpellHistory] |r" .. L["MSG_IGNORE_INVALID"])
         end
     end
     addButton:SetScript("OnClick", commitAdd)
@@ -722,7 +722,7 @@ local function InitializeOptions()
             row.name:SetText(name or ("Spell #" .. spellID))
             row.remove:SetScript("OnClick", function()
                 if ns.IgnoreList:Remove(spellID) then
-                    print("|cff00ccff[SpellCombo] |r" .. string.format(L["MSG_IGNORE_REMOVED"], name or spellID))
+                    print("|cff00ccff[SpellHistory] |r" .. string.format(L["MSG_IGNORE_REMOVED"], name or spellID))
                 end
             end)
             row:Show()
@@ -736,7 +736,7 @@ local function InitializeOptions()
 
     -- Re-sync every widget from the live settings (after a profile switch).
     function refreshOptionsPanel()
-        local db = SpellComboHistoryDB
+        local db = SpellHistoryEnhancedDB
         slider:SetValue(db.restartTimeout)
         lockCheck:SetChecked(db.isLocked)
         gridCheck:SetChecked(db.useGrid)
@@ -763,7 +763,7 @@ end
 -- Re-apply every runtime setting from the live working set. Used at login and
 -- after a profile (spec) switch.
 local function ApplyAllSettings()
-    local db = SpellComboHistoryDB
+    local db = SpellHistoryEnhancedDB
     -- Bar scale and position.
     anchor:SetScale(db.uiScale or 1.0)
     anchor:ClearAllPoints()
@@ -963,7 +963,7 @@ local function ProcessFrameSpells()
             -- A GCD spell with a valid start time.
             elseif not isOffGCD and actionStartTime > 0 then
                 -- Restart timeout from settings (default 10s).
-                local timeout = (SpellComboHistoryDB and SpellComboHistoryDB.restartTimeout) or 10
+                local timeout = (SpellHistoryEnhancedDB and SpellHistoryEnhancedDB.restartTimeout) or 10
 
                 -- No prior data, or the spell came after a long gap (timeout).
                 if lastGcdEndTime == 0 or actionStartTime > lastGcdEndTime + timeout then
@@ -1035,47 +1035,47 @@ end
 -- Final event handler registration.
 frame:SetScript("OnEvent", function(self, event, unit, castID, spellID)
     -- On first load (login).
-    if event == "ADDON_LOADED" and unit == "SpellComboHistory" then
+    if event == "ADDON_LOADED" and unit == "SpellHistoryEnhanced" then
         -- Create the saved-variables table if missing.
-        SpellComboHistoryDB = SpellComboHistoryDB or {}
+        SpellHistoryEnhancedDB = SpellHistoryEnhancedDB or {}
         -- Default restart timeout.
-        if SpellComboHistoryDB.restartTimeout == nil then SpellComboHistoryDB.restartTimeout = 10 end
+        if SpellHistoryEnhancedDB.restartTimeout == nil then SpellHistoryEnhancedDB.restartTimeout = 10 end
         -- Default lock state.
-        if SpellComboHistoryDB.isLocked == nil then SpellComboHistoryDB.isLocked = true end
+        if SpellHistoryEnhancedDB.isLocked == nil then SpellHistoryEnhancedDB.isLocked = true end
         -- Default max icon count.
-        if SpellComboHistoryDB.maxIcons == nil then SpellComboHistoryDB.maxIcons = 6 end
+        if SpellHistoryEnhancedDB.maxIcons == nil then SpellHistoryEnhancedDB.maxIcons = 6 end
         -- Default background transparency.
-        if SpellComboHistoryDB.bgAlpha == nil then SpellComboHistoryDB.bgAlpha = 0.5 end
+        if SpellHistoryEnhancedDB.bgAlpha == nil then SpellHistoryEnhancedDB.bgAlpha = 0.5 end
         -- Default UI scale.
-        if SpellComboHistoryDB.uiScale == nil then SpellComboHistoryDB.uiScale = 1.0 end
+        if SpellHistoryEnhancedDB.uiScale == nil then SpellHistoryEnhancedDB.uiScale = 1.0 end
         -- Default grid mode.
-        if SpellComboHistoryDB.useGrid == nil then SpellComboHistoryDB.useGrid = true end
+        if SpellHistoryEnhancedDB.useGrid == nil then SpellHistoryEnhancedDB.useGrid = true end
         -- Default animation style.
-        if SpellComboHistoryDB.animStyle == nil then SpellComboHistoryDB.animStyle = "slide" end
+        if SpellHistoryEnhancedDB.animStyle == nil then SpellHistoryEnhancedDB.animStyle = "slide" end
         -- Default animation duration (seconds).
-        if SpellComboHistoryDB.animDuration == nil then SpellComboHistoryDB.animDuration = 0.25 end
+        if SpellHistoryEnhancedDB.animDuration == nil then SpellHistoryEnhancedDB.animDuration = 0.25 end
         -- Default stats panel visibility and lock state.
-        if SpellComboHistoryDB.statsShown == nil then SpellComboHistoryDB.statsShown = true end
-        if SpellComboHistoryDB.statsLocked == nil then SpellComboHistoryDB.statsLocked = true end
+        if SpellHistoryEnhancedDB.statsShown == nil then SpellHistoryEnhancedDB.statsShown = true end
+        if SpellHistoryEnhancedDB.statsLocked == nil then SpellHistoryEnhancedDB.statsLocked = true end
 
         -- Initialize the ignore list from saved variables.
-        ns.IgnoreList:Init(SpellComboHistoryDB)
+        ns.IgnoreList:Init(SpellHistoryEnhancedDB)
 
         -- Initialize the statistics model and its on-screen panel.
         ns.Stats:Init()
-        ns.StatsPanel:Init(SpellComboHistoryDB)
+        ns.StatsPanel:Init(SpellHistoryEnhancedDB)
 
         -- Initialize per-spec profiles (activated at PLAYER_LOGIN).
-        ns.Profiles:Init(SpellComboHistoryDB)
+        ns.Profiles:Init(SpellHistoryEnhancedDB)
 
         -- Wire up the icon bar, injecting its config and settings getters.
         ns.HistoryBar:Init({
             anchor = anchor,
             iconSize = ICON_SIZE,
             spacing = SPACING,
-            getMaxIcons = function() return (SpellComboHistoryDB and SpellComboHistoryDB.maxIcons) or 6 end,
-            getAnimation = function() return ns.Animations:Get(SpellComboHistoryDB.animStyle) end,
-            getDuration = function() return (SpellComboHistoryDB and SpellComboHistoryDB.animDuration) or 0.25 end,
+            getMaxIcons = function() return (SpellHistoryEnhancedDB and SpellHistoryEnhancedDB.maxIcons) or 6 end,
+            getAnimation = function() return ns.Animations:Get(SpellHistoryEnhancedDB.animStyle) end,
+            getDuration = function() return (SpellHistoryEnhancedDB and SpellHistoryEnhancedDB.animDuration) or 0.25 end,
         })
 
         -- Build the options panel, then apply all settings to the UI.
@@ -1210,19 +1210,19 @@ frame:SetScript("OnEvent", function(self, event, unit, castID, spellID)
     end
 end)
 
--- Slash command: "/sch" or "/spellcombo" to print stats, "/sch reset" to clear.
-SLASH_SPELLCOMBOHISTORY1 = "/sch"
-SLASH_SPELLCOMBOHISTORY2 = "/spellcombo"
-SlashCmdList["SPELLCOMBOHISTORY"] = function(msg)
+-- Slash command: "/she" or "/spellhistory" to print stats, "/she reset" to clear.
+SLASH_SPELLHISTORYENHANCED1 = "/she"
+SLASH_SPELLHISTORYENHANCED2 = "/spellhistory"
+SlashCmdList["SPELLHISTORYENHANCED"] = function(msg)
     msg = (msg or ""):lower():gsub("%s+", "")
     if msg == "reset" then
         ns.Stats:Reset()
-        print("|cff00ccff[SpellCombo] |r" .. L["MSG_STATS_RESET"])
+        print("|cff00ccff[SpellHistory] |r" .. L["MSG_STATS_RESET"])
         return
     end
     -- Print the current/last fight's statistics.
     local s = ns.Stats:Get()
-    print("|cff00ccff[SpellCombo] |r" .. L["STATS_HEADER"] .. " (" .. fmtDuration(s.duration) .. ")")
+    print("|cff00ccff[SpellHistory] |r" .. L["STATS_HEADER"] .. " (" .. fmtDuration(s.duration) .. ")")
     print("  " .. L["STATS_UPTIME"] .. ": " .. math.floor(s.uptime + 0.5) .. "%")
     print("  " .. L["PERFECT"] .. ": " .. s.perfects .. " (" .. math.floor(s.perfectRate + 0.5) .. "%)")
     print("  " .. L["STATS_BEST_COMBO"] .. ": " .. s.bestCombo)

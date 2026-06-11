@@ -1,4 +1,4 @@
-# Spell Combo History — Animation System Design
+# Spell History Enhanced — Animation System Design
 
 **Date:** 2026-06-10
 **Status:** Implemented
@@ -56,7 +56,7 @@ The display manager. Owns an icon pool and an ordered `active` queue
 The bar depends only on the **strategy interface** (DIP); it never references a
 concrete animation.
 
-### `SpellComboHistory.lua`
+### `SpellHistoryEnhanced.lua`
 Slimmed to events, GCD/combo analysis, the settings panel, and wiring. It calls
 `ns.HistoryBar:Push(...)` in place of the removed inline `UpdateHistory`, and
 removed `CreateIcon`, `COMBO_LEVELS`, `GetComboTextAndColor` (moved to

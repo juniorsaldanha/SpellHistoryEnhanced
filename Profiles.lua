@@ -1,6 +1,6 @@
 -- Profiles.lua - per-specialization settings profiles.
 --
--- The addon keeps its live settings as flat keys on SpellComboHistoryDB (the
+-- The addon keeps its live settings as flat keys on SpellHistoryEnhancedDB (the
 -- "working set" every module already reads). This manager stores a copy of
 -- those keys per specialization under db.profiles[specID] and swaps them when
 -- the player changes spec:

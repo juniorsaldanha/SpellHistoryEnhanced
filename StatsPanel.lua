@@ -55,7 +55,7 @@ function StatsPanel:Init(db)
     end
 
     local panel = self
-    local f = CreateFrame("Frame", "SpellComboHistoryStatsPanel", UIParent)
+    local f = CreateFrame("Frame", "SpellHistoryEnhancedStatsPanel", UIParent)
     self.frame = f
     f:SetClampedToScreen(true)
     f:SetMovable(true)
@@ -117,8 +117,8 @@ function StatsPanel:Init(db)
         if button == "RightButton" and not panel.db.statsLocked then
             panel.db.statsLocked = true
             panel:ApplyLock()
-            if _G["SpellComboHistoryLockStatsCheck"] then
-                _G["SpellComboHistoryLockStatsCheck"]:SetChecked(true)
+            if _G["SpellHistoryEnhancedLockStatsCheck"] then
+                _G["SpellHistoryEnhancedLockStatsCheck"]:SetChecked(true)
             end
         end
     end)

@@ -1,4 +1,4 @@
-# Spell Combo History — Ignore List Design
+# Spell History Enhanced — Ignore List Design
 
 **Date:** 2026-06-10
 **Status:** Implemented
@@ -25,7 +25,7 @@ A small, UI-agnostic model (SRP):
   refreshes live when the list changes.
 
 ### Filtering
-In `SpellComboHistory.lua`, the `UNIT_SPELLCAST_SUCCEEDED` handler drops the
+In `SpellHistoryEnhanced.lua`, the `UNIT_SPELLCAST_SUCCEEDED` handler drops the
 cast (and clears its pending data) when `ns.IgnoreList:IsIgnored(spellID)` —
 right after the existing "is this a player spell?" gate, so ignored spells
 never enter the frame-batch analysis at all.
@@ -55,7 +55,7 @@ Eight new keys in `enUS.lua` and `ptBR.lua`: `IGNORE_LIST`, `IGNORE_HINT`,
 `MSG_IGNORE_REMOVED`, `MSG_IGNORE_INVALID`.
 
 ## SavedVariables
-`SpellComboHistoryDB.ignoreList` — a table `{ [spellID] = true }`.
+`SpellHistoryEnhancedDB.ignoreList` — a table `{ [spellID] = true }`.
 
 ## Out of Scope
 Remaining roadmap items: stats/session tracking and per-spec profiles.

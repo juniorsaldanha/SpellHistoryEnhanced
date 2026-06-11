@@ -1,4 +1,4 @@
--- enUS.lua - English (base) locale for Spell Combo History.
+-- enUS.lua - English (base) locale for Spell History Enhanced.
 -- This file sets every user-facing string unconditionally and serves as the
 -- fallback for all other locales. To add a translation, create a sibling file
 -- (e.g. koKR.lua), guard it on GetLocale(), and override only the keys you
@@ -11,7 +11,7 @@ local L = ns.L
 L["MOVE_HINT"] = "MOVE\nRight-click to Lock"
 
 -- Options panel.
-L["OPTIONS_TITLE"] = "Spell Combo History Settings"
+L["OPTIONS_TITLE"] = "Spell History Enhanced Settings"
 L["RESTART_TIMEOUT"] = "Restart Timeout"
 L["LOCK_POSITION"] = "Lock Position"
 L["USE_GRID_SNAP"] = "Use Grid & Snap"
@@ -38,7 +38,7 @@ L["MSG_IGNORE_ADDED"] = "%s added to the ignore list."
 L["MSG_IGNORE_REMOVED"] = "%s removed from the ignore list."
 L["MSG_IGNORE_INVALID"] = "Could not find that spell. Enter a valid spell ID, name, or link."
 L["STATS_HEADER"] = "Statistics"
-L["STATS_PANEL_TITLE"] = "Spell Combo"
+L["STATS_PANEL_TITLE"] = "Spell History"
 L["STATS_UPTIME"] = "Uptime"
 L["STATS_BEST_COMBO"] = "Best combo"
 L["STATS_AVG_WASTE"] = "Avg waste"
@@ -52,7 +52,7 @@ L["STATS_RESET"] = "Reset Stats"
 L["MSG_STATS_RESET"] = "Statistics reset."
 L["PROFILE_NOTE"] = "Settings are saved separately for each specialization."
 
--- Chat messages (printed after the "[SpellCombo]" prefix).
+-- Chat messages (printed after the "[SpellHistory]" prefix).
 L["MSG_POSITION_LOCKED"] = "Position locked via Right-click."
 L["MSG_CURRENT_QUEUE"] = "Current SpellQueueWindow:"
 L["MSG_HISTORY_CLEARED"] = "History has been cleared."
