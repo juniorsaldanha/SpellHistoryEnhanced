@@ -8,6 +8,9 @@
 
 Locales\enUS.lua
 Locales\ptBR.lua
+Core\Constants.lua
+Core\EventBus.lua
+Core\Config.lua
 Animations.lua
 IgnoreList.lua
 Stats.lua

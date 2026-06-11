@@ -1051,27 +1051,8 @@ end
 frame:SetScript("OnEvent", function(self, event, unit, castID, spellID)
     -- On first load (login).
     if event == "ADDON_LOADED" and unit == "SpellHistoryEnhanced" then
-        -- Create the saved-variables table if missing.
-        SpellHistoryEnhancedDB = SpellHistoryEnhancedDB or {}
-        -- Default restart timeout.
-        if SpellHistoryEnhancedDB.restartTimeout == nil then SpellHistoryEnhancedDB.restartTimeout = 10 end
-        -- Default lock state.
-        if SpellHistoryEnhancedDB.isLocked == nil then SpellHistoryEnhancedDB.isLocked = true end
-        -- Default max icon count.
-        if SpellHistoryEnhancedDB.maxIcons == nil then SpellHistoryEnhancedDB.maxIcons = 6 end
-        -- Default background transparency.
-        if SpellHistoryEnhancedDB.bgAlpha == nil then SpellHistoryEnhancedDB.bgAlpha = 0.5 end
-        -- Default UI scale.
-        if SpellHistoryEnhancedDB.uiScale == nil then SpellHistoryEnhancedDB.uiScale = 1.0 end
-        -- Default grid mode.
-        if SpellHistoryEnhancedDB.useGrid == nil then SpellHistoryEnhancedDB.useGrid = true end
-        -- Default animation style.
-        if SpellHistoryEnhancedDB.animStyle == nil then SpellHistoryEnhancedDB.animStyle = "slide" end
-        -- Default animation duration (seconds).
-        if SpellHistoryEnhancedDB.animDuration == nil then SpellHistoryEnhancedDB.animDuration = 0.25 end
-        -- Default stats panel visibility and lock state.
-        if SpellHistoryEnhancedDB.statsShown == nil then SpellHistoryEnhancedDB.statsShown = true end
-        if SpellHistoryEnhancedDB.statsLocked == nil then SpellHistoryEnhancedDB.statsLocked = true end
+        -- Seed defaults and expose the working set via Core/Config.
+        ns.Config:Init()
 
         -- Initialize the ignore list from saved variables.
         ns.IgnoreList:Init(SpellHistoryEnhancedDB)
