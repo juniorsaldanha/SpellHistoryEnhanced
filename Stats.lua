@@ -64,6 +64,16 @@ function Stats:Record(isPerfect, combo, isStart, wasteTime, activeChunk)
     end
 end
 
+-- Add active (busy) time on its own, for casts whose true duration is only
+-- known after Record was already called (e.g. a channel finalized at its
+-- CHANNEL_STOP). Keeps the cast/grade counted at the right time while letting
+-- uptime reflect the real channel length.
+function Stats:AddActiveTime(seconds)
+    if seconds and seconds > 0 then
+        self.activeTime = self.activeTime + seconds
+    end
+end
+
 -- Combat duration so far (live while in combat, frozen after it ends).
 function Stats:Duration()
     if not self.combatStart then return 0 end

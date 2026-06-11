@@ -87,6 +87,9 @@ local lastGcdEndTime = 0
 local lastGcdStartTime = 0
 -- End time of the previous channeled spell.
 local lastChannelEndTime = 0
+-- Start time of a channel whose active (uptime) time is still being measured;
+-- finalized when its CHANNEL_STOP fires. nil when no channel is pending.
+local pendingChannelActiveStart = nil
 -- Current run of consecutive PERFECT casts.
 local perfectCombo = 0
 -- Whether to show "START" on the first cast after entering combat.
@@ -790,6 +793,9 @@ end
 
 -- [Main analysis] State used to group a frame's spells and grade GCD/combo.
 local pendingCasts = {}
+-- Cast IDs that belong to a channel (set at CHANNEL_START), so SUCCEEDED can
+-- tell a channel apart from a hard-cast (both carry a cast start time).
+local channelCasts = {}
 -- Additional events.
 frame:RegisterEvent("ADDON_LOADED")
 -- Spell cast start event.
@@ -1023,7 +1029,16 @@ local function ProcessFrameSpells()
         -- Record session stats for in-combat, on-GCD casts.
         if inCombat and not isOffGCD then
             -- How long this cast kept the GCD/cast bar busy.
-            local activeChunk = sp.castStartTime and (now - sp.castStartTime) or currentDuration
+            local activeChunk
+            if sp.isChannel then
+                -- A channel's SUCCEEDED fires at its START, so its true length
+                -- is not known yet. Defer the active (uptime) time until the
+                -- channel stops; record 0 here so it is not undercounted.
+                pendingChannelActiveStart = sp.castStartTime or now
+                activeChunk = 0
+            else
+                activeChunk = sp.castStartTime and (now - sp.castStartTime) or currentDuration
+            end
             ns.Stats:Record(isPerfect, perfectCombo, isStart, wasteTime, activeChunk)
         end
 
@@ -1113,6 +1128,8 @@ frame:SetScript("OnEvent", function(self, event, unit, castID, spellID)
         perfectCombo = 0
         -- Reset the channel end record.
         lastChannelEndTime = 0
+        -- Drop any unfinalized channel active-time measurement.
+        pendingChannelActiveStart = nil
         -- Done.
         return
     end
@@ -1124,6 +1141,8 @@ frame:SetScript("OnEvent", function(self, event, unit, castID, spellID)
         pendingStart = true
         -- Reset the channel end record.
         lastChannelEndTime = 0
+        -- Drop any unfinalized channel active-time measurement.
+        pendingChannelActiveStart = nil
         -- Done.
         return
     end
@@ -1147,15 +1166,35 @@ frame:SetScript("OnEvent", function(self, event, unit, castID, spellID)
         -- Record the start time keyed by cast ID (compared on success later).
         if castID then
             pendingCasts[castID] = GetTime()
+            -- Remember channels so SUCCEEDED (which fires at a channel's START)
+            -- can treat them differently from hard-casts.
+            if event == "UNIT_SPELLCAST_CHANNEL_START" then
+                channelCasts[castID] = true
+            end
         end
         -- Done.
         return
     end
 
-    -- A channel ended (naturally or interrupted).
+    -- A channel ended (naturally, clipped, or interrupted).
     if event == "UNIT_SPELLCAST_CHANNEL_STOP" then
-        -- Record the current time as the channel end.
-        lastChannelEndTime = GetTime()
+        -- This is the moment the channel actually stopped occupying the player.
+        local channelEnd = GetTime()
+        -- Record the channel end.
+        lastChannelEndTime = channelEnd
+        -- A channel fires UNIT_SPELLCAST_SUCCEEDED at its START, so the main
+        -- analysis already set lastGcdEndTime to the channel's start time. That
+        -- would make the NEXT spell's wasted time include the whole channel.
+        -- Correct it here to the true end so waste is measured end -> next cast.
+        if lastGcdEndTime ~= 0 then
+            lastGcdEndTime = channelEnd
+        end
+        -- Finalize the channel's active (uptime) time now that its real length
+        -- is known (handles full channels and early clips alike).
+        if pendingChannelActiveStart then
+            ns.Stats:AddActiveTime(channelEnd - pendingChannelActiveStart)
+            pendingChannelActiveStart = nil
+        end
         -- Done.
         return
     end
@@ -1172,16 +1211,20 @@ frame:SetScript("OnEvent", function(self, event, unit, castID, spellID)
             -- Drop the cast data.
             if castID then
                 pendingCasts[castID] = nil
+                channelCasts[castID] = nil
             end
             -- Done.
             return
         end
 
-        -- [1] Read the recorded cast start time (if any) and clear it.
+        -- [1] Read the recorded cast start time (if any) and whether this is a
+        -- channel, then clear both.
         local castStartTime = castID and pendingCasts[castID]
+        local isChannel = (castID and channelCasts[castID]) or nil
         -- Discard the data.
         if castID then
             pendingCasts[castID] = nil
+            channelCasts[castID] = nil
         end
 
         -- [2] Capture the GCD (61304) start time at success (sync helper data).
@@ -1200,7 +1243,7 @@ frame:SetScript("OnEvent", function(self, event, unit, castID, spellID)
         end
 
         -- [3] Add the spell info to this frame's basket.
-        table.insert(frameSpells, {spellID = spellID, castStartTime = castStartTime, syncStart = syncStart})
+        table.insert(frameSpells, {spellID = spellID, castStartTime = castStartTime, syncStart = syncStart, isChannel = isChannel})
 
         -- [4] Arm the 0.01s analysis timer if not already running.
         if not processingTimer then
