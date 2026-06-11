@@ -90,6 +90,7 @@ frame:SetScript("OnEvent", function(self, event, unit, castID, spellID)
             local info = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(spellID)
             print(ns.Constants.PRINT_PREFIX .. "cast " .. tostring(spellID)
                 .. " |cffffff00" .. (info and info.name or "?") .. "|r"
+                .. " icon=" .. tostring(info and info.iconID)
                 .. " player=" .. tostring(isPlayerSpell and true or false)
                 .. " channel=" .. tostring((castID and channelCasts[castID]) and true or false)
                 .. " ignored=" .. tostring(ns.IgnoreList:IsIgnored(spellID)))
