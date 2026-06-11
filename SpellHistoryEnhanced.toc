@@ -4,6 +4,7 @@
 ## Author: Junior Saldanha
 ## Version: 1.0.0
 ## X-License: MIT
+## IconTexture: Interface\AddOns\SpellHistoryEnhanced\images\icon.png
 ## SavedVariables: SpellHistoryEnhancedDB
 
 Locales\enUS.lua
