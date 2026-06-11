@@ -20,6 +20,12 @@ Config.defaults = {
     statsLocked    = true,
     showTrinkets   = true,
     barShown       = true,
+    borderSize     = "none",        -- none | thin | normal | heavy | strong
+    borderColorMode = "class",      -- class | custom
+    borderColorR   = 1,
+    borderColorG   = 1,
+    borderColorB   = 1,
+    borderColorA   = 1,
 }
 
 -- Transient grading state, shared by Engine/CastTracker and Engine/GcdAnalyzer.

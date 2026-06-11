@@ -28,6 +28,38 @@ local function addCheckbox(category, var, key, label, default, tooltip, onChange
     return setting
 end
 
+local function addDropdown(category, var, key, label, default, getOptions, onChange)
+    local setting = Settings.RegisterAddOnSetting(category, var, key, ns.Config.db, type(default), label, default)
+    if onChange then Settings.SetOnValueChangedCallback(var, function() onChange() end) end
+    Settings.CreateDropdown(category, setting, getOptions)
+    settingRefs[key] = setting
+    return setting
+end
+
+-- Open the Blizzard color picker seeded with (r,g,b,a); callback(r,g,b,a) runs
+-- live as the user edits, and on cancel restores the previous color.
+local function ShowColorPicker(r, g, b, a, callback)
+    local function onChange()
+        local nr, ng, nb = ColorPickerFrame:GetColorRGB()
+        local na = ColorPickerFrame.GetColorAlpha and ColorPickerFrame:GetColorAlpha() or 1
+        callback(nr, ng, nb, na)
+    end
+    local info = {
+        r = r, g = g, b = b,
+        hasOpacity = true,
+        opacity = a or 1,
+        swatchFunc = onChange,
+        opacityFunc = onChange,
+        previousValues = { r = r, g = g, b = b, a = a or 1 },
+        cancelFunc = function(prev)
+            if prev then callback(prev.r, prev.g, prev.b, prev.a or 1) end
+        end,
+    }
+    if ColorPickerFrame.SetupColorPickerAndShow then
+        ColorPickerFrame:SetupColorPickerAndShow(info)
+    end
+end
+
 function Options:Build()
     local category, layout = Settings.RegisterVerticalLayoutCategory("SpellHistoryEnhanced")
     ns.optionsCategory = category
@@ -60,7 +92,7 @@ function Options:Build()
 
     addSlider(category, "SHE_maxIcons", "maxIcons", L["MAX_ICONS"], 6, 4, 12, 1,
         function(v) return tostring(v) end,
-        function() ns.HistoryBar:Relayout(); ns.Anchor:UpdateBackground() end)
+        function() ns.HistoryBar:Relayout(); ns.Anchor:UpdateBackground(); ns.Anchor:UpdateBorder() end)
 
     addSlider(category, "SHE_bgAlpha", "bgAlpha", L["BG_TRANSPARENCY"], 0.5, 0, 1, 0.05,
         function(v) return string.format("%d%%", math.floor(v * 100 + 0.5)) end,
@@ -86,6 +118,41 @@ function Options:Build()
 
     addSlider(category, "SHE_animDuration", "animDuration", L["ANIM_SPEED"], 0.25, 0.1, 0.6, 0.05,
         function(v) return string.format("%.2fs", v) end, nil)
+
+    -- Border size dropdown.
+    addDropdown(category, "SHE_borderSize", "borderSize", L["BORDER_SIZE"], "none",
+        function()
+            local c = Settings.CreateControlTextContainer()
+            c:Add("none", L["BORDER_NONE"])
+            c:Add("thin", L["BORDER_THIN"])
+            c:Add("normal", L["BORDER_NORMAL"])
+            c:Add("heavy", L["BORDER_HEAVY"])
+            c:Add("strong", L["BORDER_STRONG"])
+            return c:GetData()
+        end,
+        function() ns.Anchor:UpdateBorder() end)
+
+    -- Border color mode dropdown (class color or custom).
+    addDropdown(category, "SHE_borderColorMode", "borderColorMode", L["BORDER_COLOR_MODE"], "class",
+        function()
+            local c = Settings.CreateControlTextContainer()
+            c:Add("class", L["BORDER_COLOR_CLASS"])
+            c:Add("custom", L["BORDER_COLOR_CUSTOM"])
+            return c:GetData()
+        end,
+        function() ns.Anchor:UpdateBorder() end)
+
+    -- Custom border color picker (switches the mode to custom).
+    layout:AddInitializer(CreateSettingsButtonInitializer(L["BORDER_COLOR_PICK"], L["BORDER_COLOR_PICK"], function()
+        local db = ns.Config.db
+        ShowColorPicker(db.borderColorR or 1, db.borderColorG or 1, db.borderColorB or 1, db.borderColorA or 1,
+            function(r, g, b, a)
+                db.borderColorR, db.borderColorG, db.borderColorB, db.borderColorA = r, g, b, a
+                db.borderColorMode = "custom"
+                ns.Anchor:UpdateBorder()
+                if ns.Options and ns.Options.Refresh then ns.Options:Refresh() end
+            end)
+    end, nil, true))
 
     -- ===== Position / actions =====
     layout:AddInitializer(CreateSettingsListSectionHeaderInitializer(L["SECTION_POSITION"]))

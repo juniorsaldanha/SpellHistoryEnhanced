@@ -19,6 +19,8 @@ local PROFILED_KEYS = {
     "restartTimeout", "isLocked", "maxIcons", "bgAlpha", "uiScale", "useGrid",
     "animStyle", "animDuration", "statsShown", "statsLocked", "showTrinkets",
     "barShown",
+    "borderSize", "borderColorMode",
+    "borderColorR", "borderColorG", "borderColorB", "borderColorA",
     "point", "x", "y", "statsPoint", "statsX", "statsY",
 }
 

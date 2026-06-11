@@ -9,6 +9,7 @@ local UIParent           = UIParent
 local GetCursorPosition  = GetCursorPosition
 local IsShiftKeyDown     = IsShiftKeyDown
 local GameTooltip        = GameTooltip
+local UnitClass          = UnitClass
 
 local ICON_SIZE = ns.Constants.ICON_SIZE
 local SPACING   = ns.Constants.SPACING
@@ -98,6 +99,49 @@ function Anchor:UpdateBackground()
     local alpha = db and db.bgAlpha
     if alpha == nil then alpha = 0.5 end
     anchor.mainBg:SetColorTexture(0, 0, 0, alpha)
+end
+
+-- ---------------------------------------------------------------------------
+-- Border (optional; framed around the background bar).
+-- ---------------------------------------------------------------------------
+local borderFrame = CreateFrame("Frame", nil, anchor, "BackdropTemplate")
+borderFrame:EnableMouse(false)
+borderFrame:Hide()
+
+-- Pixel thickness for each named border size.
+local BORDER_SIZES = { none = 0, thin = 1, normal = 2, heavy = 4, strong = 6 }
+
+-- Resolve the configured border color: the player's class color, or a custom
+-- RGBA stored on the working set.
+local function GetBorderColor()
+    local db = ns.Config.db
+    if db.borderColorMode == "custom" then
+        return db.borderColorR or 1, db.borderColorG or 1, db.borderColorB or 1, db.borderColorA or 1
+    end
+    local _, class = UnitClass("player")
+    local cc = class and RAID_CLASS_COLORS and RAID_CLASS_COLORS[class]
+    if cc then return cc.r, cc.g, cc.b, 1 end
+    return 1, 1, 1, 1
+end
+
+function Anchor:UpdateBorder()
+    local db = ns.Config.db
+    local size = BORDER_SIZES[db.borderSize or "none"] or 0
+    if size <= 0 then
+        borderFrame:Hide()
+        return
+    end
+
+    -- Frame the same region as the background bar.
+    local maxIcons = (db.maxIcons) or 6
+    local blockWidth = ICON_SIZE + (maxIcons - 1) * (ICON_SIZE + SPACING)
+    borderFrame:ClearAllPoints()
+    borderFrame:SetPoint("TOPRIGHT", anchor, "TOPRIGHT", 5, 5)
+    borderFrame:SetPoint("BOTTOMLEFT", anchor, "BOTTOMLEFT", -(blockWidth - ICON_SIZE) - 5, -5)
+
+    borderFrame:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = size })
+    borderFrame:SetBackdropBorderColor(GetBorderColor())
+    borderFrame:Show()
 end
 
 -- ---------------------------------------------------------------------------
