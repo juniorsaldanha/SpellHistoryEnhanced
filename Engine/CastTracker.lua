@@ -83,8 +83,14 @@ frame:SetScript("OnEvent", function(self, event, unit, castID, spellID)
 
     -- A spell cast finally succeeded.
     if event == "UNIT_SPELLCAST_SUCCEEDED" then
+        -- Accept any spell the player actually knows. Transform/override
+        -- abilities (e.g. Demon Hunter Devourer's Collapsing Star, Eradicate,
+        -- Devour in Metamorphosis) are not in the static spellbook, so also
+        -- check override-known; otherwise they get wrongly dropped.
         local isPlayerSpell = (C_SpellBook and C_SpellBook.IsSpellInSpellBook and C_SpellBook.IsSpellInSpellBook(spellID))
                            or (IsPlayerSpell and IsPlayerSpell(spellID))
+                           or (IsSpellKnownOrOverridesKnown and IsSpellKnownOrOverridesKnown(spellID))
+                           or (C_SpellBook and C_SpellBook.IsSpellKnownOrInSpellBook and C_SpellBook.IsSpellKnownOrInSpellBook(spellID))
 
         if ns.debug then
             local info = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(spellID)

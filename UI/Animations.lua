@@ -78,6 +78,20 @@ function Tween:Start(obj, duration, target, easing, onComplete)
         if onComplete then onComplete() end
         return
     end
+    -- Carry over any fields still being animated by a previous tween that the
+    -- new target does not set, so an interrupting tween (e.g. a move) keeps them
+    -- going instead of freezing them mid-flight. Without this, a slide-in icon
+    -- that gets moved before its fade finishes stays stuck at partial alpha and
+    -- looks like an empty slot.
+    local existing = running[obj]
+    if existing then
+        for field, toValue in pairs(existing.to) do
+            if target[field] == nil then
+                target[field] = toValue
+            end
+        end
+    end
+
     -- Capture the current values as the animation's starting point.
     local from = {}
     for field in pairs(target) do from[field] = obj.state[field] end
