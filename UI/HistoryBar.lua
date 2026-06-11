@@ -16,6 +16,7 @@ local UnitAffectingCombat = UnitAffectingCombat
 local C_Spell = C_Spell
 local GetSpellInfo = GetSpellInfo or function(id) return C_Spell.GetSpellInfo(id) end
 local wipe = wipe
+local IsShiftKeyDown = IsShiftKeyDown
 local format = string.format
 
 local HistoryBar = {}
@@ -57,7 +58,11 @@ function HistoryBar:Init(opts)
     self.getDuration = opts.getDuration
     self.active = {}      -- ordered, index 1 = newest
     self.pool = {}        -- free icons ready to reuse
-    self.interactive = false
+    -- Icons stay mouse-interactive so they show tooltips, accept right-click
+    -- ignore, and forward Shift-drag to move the bar.
+    self.interactive = true
+    self.beginDrag = opts.beginDrag
+    self.endDrag = opts.endDrag
 end
 
 -- Build a single icon frame. The frame carries its own animatable `state`
@@ -100,12 +105,17 @@ function HistoryBar:CreateIcon()
     end)
     -- Right-click an icon to add that spell to the ignore list.
     f:SetScript("OnMouseUp", function(self, button)
-        if button == "RightButton" and self.spellID and ns.IgnoreList then
-            if ns.IgnoreList:Add(self.spellID) then
-                local name = ns.IgnoreList.GetSpellNameIcon(self.spellID)
-                print("|cff00ccff[SpellHistory] |r" .. format(L["MSG_IGNORE_ADDED"], name or self.spellID))
-            end
+        if button == "RightButton" and self.spellID then
+            HistoryBar:OpenMenu(self, self.spellID)
         end
+    end)
+    -- Shift + left-drag on an icon moves the whole bar.
+    f:RegisterForDrag("LeftButton")
+    f:SetScript("OnDragStart", function()
+        if IsShiftKeyDown() and HistoryBar.beginDrag then HistoryBar.beginDrag() end
+    end)
+    f:SetScript("OnDragStop", function()
+        if HistoryBar.endDrag then HistoryBar.endDrag() end
     end)
 
     -- Animatable state and how to apply it.
@@ -267,3 +277,40 @@ function HistoryBar:SetInteractive(enabled)
         ic:EnableMouse(enabled)
     end
 end
+
+-- Right-click context menu for the cast list. When opened from an icon,
+-- `spellID` is set and an "Ignore <spell>" item is added on top.
+function HistoryBar:OpenMenu(owner, spellID)
+    local function build(_, root)
+        if spellID then
+            local name = ns.IgnoreList.GetSpellNameIcon(spellID)
+            root:CreateButton(format(L["MENU_IGNORE_SPELL"], name or spellID), function()
+                if ns.IgnoreList:Add(spellID) then
+                    print(ns.Constants.PRINT_PREFIX .. format(L["MSG_IGNORE_ADDED"], name or spellID))
+                end
+            end)
+        end
+        root:CreateButton(L["MENU_HIDE_BAR"], function()
+            ns.Config.db.barShown = false
+            ns.Anchor:ApplyShown()
+            if ns.Options and ns.Options.Refresh then ns.Options:Refresh() end
+        end)
+        root:CreateButton(L["MENU_OPEN_OPTIONS"], function()
+            if ns.optionsCategory and Settings and Settings.OpenToCategory then
+                Settings.OpenToCategory(ns.optionsCategory:GetID())
+            end
+        end)
+        root:CreateButton(L["MENU_CLEAR_LIST"], function()
+            HistoryBar:Clear()
+            ns.Config.state.perfectCombo = 0
+        end)
+    end
+    if MenuUtil and MenuUtil.CreateContextMenu then
+        MenuUtil.CreateContextMenu(owner, build)
+    end
+end
+
+-- Drive the bar from graded casts published by the engine.
+ns.EventBus:Subscribe("CAST_GRADED", function(p)
+    HistoryBar:Push(p.spellID, p.wasteTime, p.isOffGCD, p.isStart, p.isPerfect, p.comboCount)
+end)

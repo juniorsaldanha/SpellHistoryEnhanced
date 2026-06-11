@@ -7,14 +7,39 @@ local _, ns = ...
 ns.L = ns.L or {}
 local L = ns.L
 
--- Movable anchor hint shown while the bar is unlocked.
-L["MOVE_HINT"] = "MOVE\nRight-click to Lock"
+-- Movable anchor hint (hold Shift and drag to move the bar).
+L["MOVE_HINT"] = "Shift-drag to move"
+
+-- Settings section headers and the stats-panel gear menu.
+L["SECTION_BEHAVIOR"] = "Behavior"
+L["SECTION_APPEARANCE"] = "Appearance"
+L["SECTION_POSITION"] = "Position"
+L["MENU_HIDE_PANEL"] = "Hide panel"
+L["MENU_RESET_STATS"] = "Reset stats"
+L["MENU_OPEN_OPTIONS"] = "Open options"
+L["MENU_IGNORE_SPELL"] = "Ignore %s"
+L["MENU_HIDE_BAR"] = "Hide cast list"
+L["MENU_CLEAR_LIST"] = "Clear list"
 
 -- Options panel.
 L["OPTIONS_TITLE"] = "Spell History Enhanced Settings"
 L["RESTART_TIMEOUT"] = "Restart Timeout"
 L["LOCK_POSITION"] = "Lock Position"
 L["USE_GRID_SNAP"] = "Use Grid & Snap"
+L["SHOW_TRINKETS"] = "Show Trinket Use"
+L["SHOW_TRINKETS_TOOLTIP"] = "Show equipped trinket on-use activations in the cast list."
+L["SHOW_BAR"] = "Show Cast List"
+L["SHOW_BAR_TOOLTIP"] = "Show or hide the cast history bar."
+L["BORDER_SIZE"] = "Border Size"
+L["BORDER_NONE"] = "None"
+L["BORDER_THIN"] = "Thin"
+L["BORDER_NORMAL"] = "Normal"
+L["BORDER_HEAVY"] = "Heavy"
+L["BORDER_STRONG"] = "Strong"
+L["BORDER_COLOR_MODE"] = "Border Color"
+L["BORDER_COLOR_CLASS"] = "Class Color"
+L["BORDER_COLOR_CUSTOM"] = "Custom"
+L["BORDER_COLOR_PICK"] = "Choose Border Color"
 L["MAX_ICONS"] = "Max Icons"
 L["BG_TRANSPARENCY"] = "Background Transparency"
 L["UI_SCALE"] = "UI Scale"
@@ -44,7 +69,7 @@ L["STATS_BEST_COMBO"] = "Best combo"
 L["STATS_AVG_WASTE"] = "Avg waste"
 L["STATS_CASTS"] = "Casts"
 L["STATS_SESSION"] = "Session"
-L["STATS_MOVE_HINT"] = "Right-click to Lock"
+L["STATS_MOVE_HINT"] = "Shift-drag to move"
 L["SHOW_STATS"] = "Show Stats Panel"
 L["LOCK_STATS"] = "Lock Stats Panel"
 L["STATS_REFRESH"] = "Refresh"

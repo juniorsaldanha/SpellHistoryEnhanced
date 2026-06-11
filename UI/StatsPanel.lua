@@ -8,6 +8,7 @@ local L = ns.L
 
 local CreateFrame = CreateFrame
 local UIParent = UIParent
+local IsShiftKeyDown = IsShiftKeyDown
 local floor = math.floor
 local format = string.format
 
@@ -94,33 +95,33 @@ function StatsPanel:Init(db)
         f.values[row.key] = value
     end
 
-    -- Drag hint, shown only while unlocked.
+    -- Drag hint (Shift to move).
     local hint = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     hint:SetPoint("BOTTOM", f, "BOTTOM", 0, 5)
     hint:SetText(L["STATS_MOVE_HINT"])
     hint:SetTextColor(1, 0.82, 0)
     self.hint = hint
 
+    -- Top-right gear button -> context menu (hide / reset / open options).
+    local gear = CreateFrame("Button", nil, f)
+    gear:SetSize(16, 16)
+    gear:SetPoint("TOPRIGHT", f, "TOPRIGHT", -4, -4)
+    gear:SetNormalTexture("Interface\\GossipFrame\\BinderGossipIcon")
+    gear:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
+    gear:SetScript("OnClick", function() panel:OpenMenu(gear) end)
+    self.gear = gear
+
     f:SetSize(190, 28 + #ROWS * rowH + 22)
 
-    -- Drag to move (only while unlocked).
+    -- Shift + left-drag to move; mouse stays enabled for the gear button.
+    f:EnableMouse(true)
     f:SetScript("OnDragStart", function(self)
-        if not panel.db.statsLocked then self:StartMoving() end
+        if IsShiftKeyDown() then self:StartMoving() end
     end)
     f:SetScript("OnDragStop", function(self)
         self:StopMovingOrSizing()
         local point, _, _, x, y = self:GetPoint()
         panel.db.statsPoint, panel.db.statsX, panel.db.statsY = point, x, y
-    end)
-    -- Right-click to lock.
-    f:SetScript("OnMouseDown", function(self, button)
-        if button == "RightButton" and not panel.db.statsLocked then
-            panel.db.statsLocked = true
-            panel:ApplyLock()
-            if _G["SpellHistoryEnhancedLockStatsCheck"] then
-                _G["SpellHistoryEnhancedLockStatsCheck"]:SetChecked(true)
-            end
-        end
     end)
 
     -- Throttled refresh while visible (OnUpdate does not fire when hidden).
@@ -131,19 +132,35 @@ function StatsPanel:Init(db)
         panel:Refresh()
     end)
 
-    self:ApplyLock()
     self:ApplyShown()
     self:Refresh()
 end
 
--- Apply the locked state: locked panels ignore the mouse (click-through) and
--- hide the drag hint.
-function StatsPanel:ApplyLock()
-    if not self.frame then return end
-    local locked = self.db.statsLocked
-    self.frame:EnableMouse(not locked)
-    if self.hint then self.hint:SetShown(not locked) end
+-- The gear menu: hide the panel, reset stats, or open the addon options.
+function StatsPanel:OpenMenu(owner)
+    local function build(_, root)
+        root:CreateButton(L["MENU_HIDE_PANEL"], function()
+            ns.Config.db.statsShown = false
+            StatsPanel:ApplyShown()
+        end)
+        root:CreateButton(L["MENU_RESET_STATS"], function()
+            ns.Stats:Reset()
+            print(ns.Constants.PRINT_PREFIX .. L["MSG_STATS_RESET"])
+        end)
+        root:CreateButton(L["MENU_OPEN_OPTIONS"], function()
+            if ns.optionsCategory and Settings and Settings.OpenToCategory then
+                Settings.OpenToCategory(ns.optionsCategory:GetID())
+            end
+        end)
+    end
+    if MenuUtil and MenuUtil.CreateContextMenu then
+        MenuUtil.CreateContextMenu(owner, build)
+    end
 end
+
+-- Lock is gone (Shift-drag replaces it); kept as a no-op so existing callers
+-- (profile apply) stay safe.
+function StatsPanel:ApplyLock() end
 
 function StatsPanel:ApplyShown()
     if not self.frame then return end

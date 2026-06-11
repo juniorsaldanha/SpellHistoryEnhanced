@@ -5,14 +5,39 @@ if GetLocale() ~= "ptBR" then return end
 local _, ns = ...
 local L = ns.L
 
--- Movable anchor hint shown while the bar is unlocked.
-L["MOVE_HINT"] = "MOVER\nClique direito para travar"
+-- Movable anchor hint (segure Shift e arraste para mover a barra).
+L["MOVE_HINT"] = "Shift + arrastar para mover"
+
+-- Cabeçalhos das seções e o menu da engrenagem do painel.
+L["SECTION_BEHAVIOR"] = "Comportamento"
+L["SECTION_APPEARANCE"] = "Aparência"
+L["SECTION_POSITION"] = "Posição"
+L["MENU_HIDE_PANEL"] = "Ocultar painel"
+L["MENU_RESET_STATS"] = "Zerar estatísticas"
+L["MENU_OPEN_OPTIONS"] = "Abrir opções"
+L["MENU_IGNORE_SPELL"] = "Ignorar %s"
+L["MENU_HIDE_BAR"] = "Ocultar lista de conjurações"
+L["MENU_CLEAR_LIST"] = "Limpar lista"
 
 -- Options panel.
 L["OPTIONS_TITLE"] = "Configurações do Spell History Enhanced"
 L["RESTART_TIMEOUT"] = "Tempo para reiniciar"
 L["LOCK_POSITION"] = "Travar posição"
 L["USE_GRID_SNAP"] = "Usar grade e encaixe"
+L["SHOW_TRINKETS"] = "Mostrar uso de berloque"
+L["SHOW_TRINKETS_TOOLTIP"] = "Mostra a ativação de berloques equipados (efeito de uso) na lista de conjurações."
+L["SHOW_BAR"] = "Mostrar lista de conjurações"
+L["SHOW_BAR_TOOLTIP"] = "Mostra ou oculta a barra de histórico de conjurações."
+L["BORDER_SIZE"] = "Tamanho da borda"
+L["BORDER_NONE"] = "Nenhuma"
+L["BORDER_THIN"] = "Fina"
+L["BORDER_NORMAL"] = "Normal"
+L["BORDER_HEAVY"] = "Grossa"
+L["BORDER_STRONG"] = "Forte"
+L["BORDER_COLOR_MODE"] = "Cor da borda"
+L["BORDER_COLOR_CLASS"] = "Cor da classe"
+L["BORDER_COLOR_CUSTOM"] = "Personalizada"
+L["BORDER_COLOR_PICK"] = "Escolher cor da borda"
 L["MAX_ICONS"] = "Máximo de ícones"
 L["BG_TRANSPARENCY"] = "Transparência do fundo"
 L["UI_SCALE"] = "Escala da interface"
@@ -42,7 +67,7 @@ L["STATS_BEST_COMBO"] = "Melhor combo"
 L["STATS_AVG_WASTE"] = "Desperdício méd."
 L["STATS_CASTS"] = "Conjurações"
 L["STATS_SESSION"] = "Sessão"
-L["STATS_MOVE_HINT"] = "Clique direito para travar"
+L["STATS_MOVE_HINT"] = "Shift + arrastar para mover"
 L["SHOW_STATS"] = "Mostrar painel de estatísticas"
 L["LOCK_STATS"] = "Travar painel de estatísticas"
 L["STATS_REFRESH"] = "Atualizar"
