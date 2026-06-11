@@ -6,6 +6,8 @@
 ## X-License: MIT
 ## IconTexture: Interface\AddOns\SpellHistoryEnhanced\images\icon.png
 ## SavedVariables: SpellHistoryEnhancedDB
+## X-Curse-Project-ID: 1571949
+## X-Wago-ID: qGYZrENg
 
 Locales\enUS.lua
 Locales\ptBR.lua

@@ -1,0 +1,12 @@
+package-as: SpellHistoryEnhanced
+
+enable-nolib-creation: no
+
+# Keep the runtime icon (images/icon.png) but leave development and
+# store/listing assets out of the distributed addon zip.
+ignore:
+  - .github
+  - .gitignore
+  - docs
+  - screenshots
+  - images/spell-history-enhanced.png
