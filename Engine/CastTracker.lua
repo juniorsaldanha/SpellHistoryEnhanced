@@ -124,17 +124,6 @@ frame:SetScript("OnEvent", function(self, event, unit, castID, spellID)
         -- setting is enabled (default) and the spell matches an equipped trinket.
         local isTrinket = (ns.Config.db.showTrinkets and trinketSpells[spellID]) and true or false
 
-        if ns.debug then
-            local info = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(spellID)
-            print(ns.Constants.PRINT_PREFIX .. "cast " .. tostring(spellID)
-                .. " |cffffff00" .. (info and info.name or "?") .. "|r"
-                .. " icon=" .. tostring(info and info.iconID)
-                .. " player=" .. tostring(isPlayerSpell and true or false)
-                .. " trinket=" .. tostring(trinketSpells[spellID] and true or false)
-                .. " channel=" .. tostring((castID and channelCasts[castID]) and true or false)
-                .. " ignored=" .. tostring(ns.IgnoreList:IsIgnored(spellID)))
-        end
-
         if (not isPlayerSpell and not isTrinket) or ns.IgnoreList:IsIgnored(spellID) then
             if castID then
                 pendingCasts[castID] = nil
