@@ -86,6 +86,15 @@ frame:SetScript("OnEvent", function(self, event, unit, castID, spellID)
         local isPlayerSpell = (C_SpellBook and C_SpellBook.IsSpellInSpellBook and C_SpellBook.IsSpellInSpellBook(spellID))
                            or (IsPlayerSpell and IsPlayerSpell(spellID))
 
+        if ns.debug then
+            local info = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(spellID)
+            print(ns.Constants.PRINT_PREFIX .. "cast " .. tostring(spellID)
+                .. " |cffffff00" .. (info and info.name or "?") .. "|r"
+                .. " player=" .. tostring(isPlayerSpell and true or false)
+                .. " channel=" .. tostring((castID and channelCasts[castID]) and true or false)
+                .. " ignored=" .. tostring(ns.IgnoreList:IsIgnored(spellID)))
+        end
+
         if not isPlayerSpell or ns.IgnoreList:IsIgnored(spellID) then
             if castID then
                 pendingCasts[castID] = nil

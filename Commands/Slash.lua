@@ -16,6 +16,11 @@ SlashCmdList["SPELLHISTORYENHANCED"] = function(msg)
         print(ns.Constants.PRINT_PREFIX .. L["MSG_STATS_RESET"])
         return
     end
+    if msg == "debug" then
+        ns.debug = not ns.debug
+        print(ns.Constants.PRINT_PREFIX .. "debug = " .. tostring(ns.debug))
+        return
+    end
     -- Print the current/last fight's statistics.
     local s = ns.Stats:Get()
     print(ns.Constants.PRINT_PREFIX .. L["STATS_HEADER"] .. " (" .. fmtDuration(s.duration) .. ")")

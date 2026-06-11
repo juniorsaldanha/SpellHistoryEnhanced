@@ -58,7 +58,9 @@ function HistoryBar:Init(opts)
     self.getDuration = opts.getDuration
     self.active = {}      -- ordered, index 1 = newest
     self.pool = {}        -- free icons ready to reuse
-    self.interactive = false
+    -- Icons stay mouse-interactive so they show tooltips, accept right-click
+    -- ignore, and forward Shift-drag to move the bar.
+    self.interactive = true
     self.beginDrag = opts.beginDrag
     self.endDrag = opts.endDrag
 end
