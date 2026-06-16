@@ -1,8 +1,8 @@
-## Interface: 120000, 120001, 120005
+## Interface: 120000, 120001, 120005, 120007
 ## Title: Spell History Enhanced
 ## Notes: Shows your spell cast history and the time wasted between global cooldowns.
 ## Author: Junior Saldanha
-## Version: 1.0.0
+## Version: 1.0.1
 ## X-License: MIT
 ## IconTexture: Interface\AddOns\SpellHistoryEnhanced\images\icon.png
 ## SavedVariables: SpellHistoryEnhancedDB
